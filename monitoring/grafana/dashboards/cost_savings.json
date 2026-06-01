@@ -1,0 +1,35 @@
+{
+  "title": "Cost Savings",
+  "uid": "cost-savings",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Cumulative Savings (USD)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "smartgpu_cost_savings_usd_total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}
