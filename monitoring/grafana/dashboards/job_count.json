@@ -12,10 +12,13 @@
     {
       "type": "stat",
       "title": "Total Jobs",
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "smartgpu_job_count_total"
+          "expr":"smartgpu_jobs_queued_total"
         }
       ],
       "fieldConfig": {

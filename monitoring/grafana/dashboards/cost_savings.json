@@ -12,10 +12,13 @@
     {
       "type": "stat",
       "title": "Cumulative Savings (USD)",
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "smartgpu_cost_savings_usd_total"
+          "expr": "smartgpu_cost_savings_percent"
         }
       ],
       "fieldConfig": {

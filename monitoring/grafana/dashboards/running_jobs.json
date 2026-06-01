@@ -1,0 +1,21 @@
+{
+  "title": "Running Jobs",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Running Jobs",
+      "type": "gauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "smartgpu_jobs_running_total"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 1
+}

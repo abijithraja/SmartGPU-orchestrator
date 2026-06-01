@@ -12,10 +12,13 @@
     {
       "type": "timeseries",
       "title": "GPU Queue Depth",
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "gpu_queue_depth",
+          "expr": "smartgpu_gpu_queue_depth",
           "legendFormat": "{{gpu}}"
         }
       ],

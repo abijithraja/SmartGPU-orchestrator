@@ -12,10 +12,13 @@
     {
       "type": "timeseries",
       "title": "GPU Temperature (C)",
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "gpu_temperature_celsius",
+          "expr": "smartgpu_gpu_temperature",
           "legendFormat": "{{gpu}}"
         }
       ],

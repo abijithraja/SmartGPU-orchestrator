@@ -12,10 +12,13 @@
     {
       "type": "timeseries",
       "title": "GPU Utilization (%)",
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "targets": [
         {
-          "expr": "gpu_utilization_percent",
+          "expr": "smartgpu_gpu_utilization",
           "legendFormat": "{{gpu}}"
         }
       ],
