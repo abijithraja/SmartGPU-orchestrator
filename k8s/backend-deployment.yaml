@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartgpu-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smartgpu-backend
+  template:
+    metadata:
+      labels:
+        app: smartgpu-backend
+    spec:
+      containers:
+        - name: smartgpu-backend
+          image: smartgpu-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: postgresql://user:password@smartgpu-postgres:5432/smartgpu
+            - name: REDIS_URL
+              value: redis://smartgpu-redis:6379/0
+            - name: SECRET_KEY
+              value: supersecretkey-change-in-production
+            - name: MODEL_PATH
+              value: /app/training/ppo_smartgpu.zip
+            - name: COLD_START_THRESHOLD
+              value: "500"
