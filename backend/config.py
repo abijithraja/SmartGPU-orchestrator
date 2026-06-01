@@ -1,13 +1,11 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://user:password@localhost:5432/smartgpu",
+	"DATABASE_URL",
+	"postgresql://user:password@localhost:5432/smartgpu",
 )
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-MODEL_PATH = os.getenv("MODEL_PATH", "training/ppo_smartgpu.zip")
-COLD_START_THRESHOLD = int(os.getenv("COLD_START_THRESHOLD", "500"))
+
+REDIS_URL = os.getenv(
+	"REDIS_URL",
+	"redis://localhost:6379/0",
+)
