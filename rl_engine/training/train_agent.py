@@ -78,10 +78,25 @@ class SmartGPUEnv(gym.Env):
         elif thermal or saturated:
             reward = -0.5
         else:
-            # Positive reward proportional to how good this GPU is
-            utilization_score = (100 - gpu.utilization) / 100
-            memory_score = gpu.free_memory / gpu.total_memory
-            reward = 0.5 * utilization_score + 0.5 * memory_score
+            # Multi-objective reward for balanced scheduling
+            # Cost savings: prefer lower-cost GPUs (lower utilization = shorter runtime)
+            cost_savings = (100 - gpu.utilization) / 100
+
+            # Penalize queue buildup on this GPU
+            queue_depth_penalty = gpu.queue_depth * 0.5
+
+            # Penalize high temperature
+            temperature_penalty = gpu.temperature * 0.01
+
+            # Penalize high utilization (encourage spreading load)
+            utilization_penalty = gpu.utilization * 0.005
+
+            reward = (
+                cost_savings
+                - queue_depth_penalty
+                - temperature_penalty
+                - utilization_penalty
+            )
 
         # Simulate job effect
         if not oom:

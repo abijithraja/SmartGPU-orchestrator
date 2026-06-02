@@ -28,6 +28,7 @@ class SimulatedGPU:
     def __post_init__(self):
         self.free_memory = float(self.total_memory)
         self._temp_lag = [35.0, 35.0]
+        self.failed = False
 
     def assign_job(self, memory_required: int, compute_intensity: float):
         """Called when a job is dispatched to this GPU."""
@@ -43,6 +44,10 @@ class SimulatedGPU:
 
     def step(self):
         """Advance one 15-second simulation tick."""
+        # 1% chance of GPU failure per tick
+        if random.random() < 0.01:
+            self.failed = True
+
         # Base utilization: random idle + active job load
         base_idle = random.gauss(15, 5)
         self.utilization = min(100, max(0, base_idle + self.active_job_load + random.gauss(0, 3)))
@@ -75,6 +80,7 @@ class SimulatedGPU:
             "total_memory": self.total_memory,
             "temperature": round(self.temperature, 1),
             "queue_depth": self.queue_depth,
+            "failed": self.failed,
         }
 
 
@@ -82,7 +88,7 @@ class GPUCluster:
     """A simulated cluster of N GPUs."""
 
     def __init__(self, n_gpus: int = 4):
-        skus = ["Standard_NC6", "Standard_NC12", "Standard_NC24", "Standard_NC6"]
+        skus = ["Standard_NC6", "Standard_NC6", "Standard_NC6", "Standard_NC6"]
         memories = [12, 24, 48, 12]
         self.gpus: List[SimulatedGPU] = [
             SimulatedGPU(

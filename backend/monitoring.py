@@ -168,3 +168,17 @@ def update_job_costs(
     job_rl_cost.set(rl_cost)
     job_baseline_cost.set(baseline_cost)
     cost_savings_usd.set(savings_usd)
+
+
+# =========================
+# CLUSTER ALERTS
+# =========================
+
+cluster_alerts = Gauge(
+    "smartgpu_alerts",
+    "System Alerts"
+)
+
+
+def update_cluster_alerts(value: int) -> None:
+    cluster_alerts.set(value)

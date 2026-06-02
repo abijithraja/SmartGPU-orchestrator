@@ -153,9 +153,23 @@ def schedule_job(
     rl_scores = _get_rl_scores(gpu_states, job_memory, job_intensity)
 
     for i, gpu in enumerate(gpu_states):
-        queue_penalty = gpu.get("queue_depth", 0) * 0.25
-        util_penalty = (gpu["utilization"] / 100) * 0.20
-        rl_scores[i] -= queue_penalty + util_penalty
+        queue_penalty = (
+            gpu.get("queue_depth", 0) * 0.4
+        )
+
+        util_penalty = (
+            gpu["utilization"] / 100
+        ) * 0.3
+
+        temp_penalty = (
+            gpu["temperature"] / 100
+        ) * 0.15
+
+        rl_scores[i] -= (
+            queue_penalty +
+            util_penalty +
+            temp_penalty
+        )
 
     logger.warning(f"RL SCORES: {rl_scores}")
 

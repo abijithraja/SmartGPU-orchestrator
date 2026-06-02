@@ -8,6 +8,12 @@ import RLAgentExplain from './components/RLAgentExplain'
 import RunningJobsPanel from './components/RunningJobsPanel'
 import QueuePanel from './components/QueuePanel'
 import ComparisonTable from './components/ComparisonTable'
+import RLConfidenceChart from './components/RLConfidenceChart'
+import GPUHeatMap from './components/GPUHeatMap'
+import RLStatsPanel from './components/RLStatsPanel'
+import FailurePanel from './components/FailurePanel'
+import ClusterHealth from './components/ClusterHealth'
+import JobTimeline from './components/JobTimeline'
 
 const API = 'http://localhost:8000'
 
@@ -100,13 +106,12 @@ export default function App() {
     return acc + (s > 0 ? s : 0)
   }, 0)
 
-  // Extract the latest completed decision using precise timestamps
-  const latestCompletedDecision = jobs
-    .filter((j) => j.status === 'completed')
+  // Extract the latest decision (any status) for live updates
+  const latestDecision = jobs
     .sort(
       (a, b) =>
-        new Date(b.completed_at) -
-        new Date(a.completed_at)
+        new Date(b.created_at) -
+        new Date(a.created_at)
     )[0]
 
   return (
@@ -123,6 +128,11 @@ export default function App() {
       </header>
 
       <div style={styles.grid}>
+        <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
+          <h2 style={styles.cardTitle}>RL Agent Stats</h2>
+          <RLStatsPanel jobs={jobs} />
+        </section>
+
         <section style={styles.card}>
           <h2 style={styles.cardTitle}>Submit Job</h2>
           <JobSubmit onSubmit={handleJobSubmit} loading={loading} />
@@ -133,14 +143,29 @@ export default function App() {
           <GPUStatusGrid gpus={gpus} />
         </section>
 
+        <section style={styles.card}>
+          <h2 style={styles.cardTitle}>GPU Heat Map</h2>
+          <GPUHeatMap gpus={gpus} />
+        </section>
+
+        <section style={styles.card}>
+          <h2 style={styles.cardTitle}>Cluster Health</h2>
+          <ClusterHealth gpus={gpus} />
+        </section>
+
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
           <h2 style={styles.cardTitle}>AI Decision Panel</h2>
-          <AIDecisionPanel decision={latestCompletedDecision} />
+          <AIDecisionPanel decision={latestDecision} />
+        </section>
+
+        <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
+          <h2 style={styles.cardTitle}>RL Confidence Trend</h2>
+          <RLConfidenceChart jobs={jobs} />
         </section>
 
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
           <h2 style={styles.cardTitle}>PPO Decision Details</h2>
-          <RLAgentExplain decision={latestCompletedDecision} />
+          <RLAgentExplain decision={latestDecision} />
         </section>
 
         <section style={styles.card}>
@@ -156,6 +181,16 @@ export default function App() {
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
           <h2 style={styles.cardTitle}>RL vs Round-Robin Comparison</h2>
           <ComparisonTable jobs={jobs} />
+        </section>
+
+        <section style={styles.card}>
+          <h2 style={styles.cardTitle}>Failure Recovery</h2>
+          <FailurePanel jobs={jobs} />
+        </section>
+
+        <section style={styles.card}>
+          <h2 style={styles.cardTitle}>Job Timeline</h2>
+          <JobTimeline jobs={jobs} />
         </section>
       </div>
     </div>

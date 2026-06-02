@@ -18,12 +18,21 @@ def apply_rules(
     for gpu, score in zip(gpu_states, rl_scores):
         reasons = []
 
+        if gpu.get("failed"):
+            reasons.append("GPU offline")
         if job_memory > gpu["free_memory"]:
             reasons.append(f"OOM risk ({job_memory}GB req vs {gpu['free_memory']}GB free)")
         if gpu["temperature"] > 85:
             reasons.append(f"thermal risk ({gpu['temperature']}C > 85C)")
+        if gpu.get("queue_depth", 0) >= 2:
+            reasons.append(
+                "GPU queue full"
+            )
+
         if gpu["utilization"] > 95:
-            reasons.append(f"saturated ({gpu['utilization']}% util)")
+            reasons.append(
+                f"saturated ({gpu['utilization']}%)"
+            )
 
         if not reasons:
             adjusted_score = (

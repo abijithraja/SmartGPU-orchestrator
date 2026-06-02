@@ -44,11 +44,71 @@ services:
       - .:/app
 
 
-  worker:
+  worker1:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: smartgpu-worker
+    container_name: smartgpu-worker1
+    working_dir: /app/backend
+    command: celery -A celery_app.celery worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/smartgpu
+      REDIS_URL: redis://redis:6379/0
+      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      COLD_START_THRESHOLD: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+
+  worker2:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartgpu-worker2
+    working_dir: /app/backend
+    command: celery -A celery_app.celery worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/smartgpu
+      REDIS_URL: redis://redis:6379/0
+      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      COLD_START_THRESHOLD: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+
+  worker3:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartgpu-worker3
+    working_dir: /app/backend
+    command: celery -A celery_app.celery worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/smartgpu
+      REDIS_URL: redis://redis:6379/0
+      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      COLD_START_THRESHOLD: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+
+  worker4:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartgpu-worker4
     working_dir: /app/backend
     command: celery -A celery_app.celery worker --loglevel=info
     environment:

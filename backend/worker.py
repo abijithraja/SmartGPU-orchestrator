@@ -30,6 +30,7 @@ from monitoring import (
     record_job_processed,
     update_job_confidence,
     update_job_costs,
+    update_cluster_alerts,
 )
 
 
@@ -78,6 +79,60 @@ def process_job(job_id: str):
             db.commit()
 
             return
+
+        # --- OOM Detection ---
+        if job.memory_required > selected_gpu["free_memory"]:
+
+            job.oom_occurred = True
+
+            print(
+                f"[WORKER] OOM detected for job {job.id} "
+                f"({job.memory_required}GB > "
+                f"{selected_gpu['free_memory']}GB free)"
+            )
+
+            # OOM Recovery: reduce memory by 20% and retry
+            job.memory_required = int(
+                job.memory_required * 0.8
+            )
+
+            job.status = "queued"
+
+            db.commit()
+
+            process_job.delay(str(job.id))
+
+            return
+
+        # --- Migration Check ---
+        from scheduler.migration_engine import (
+            should_migrate_job
+        )
+
+        if should_migrate_job(
+            selected_gpu["utilization"],
+            selected_gpu["temperature"],
+        ):
+
+            print(
+                f"[WORKER] MIGRATING JOB {job.id} "
+                f"(util={selected_gpu['utilization']}%, "
+                f"temp={selected_gpu['temperature']}C)"
+            )
+
+            job.status = "queued"
+
+            db.commit()
+
+            process_job.delay(str(job.id))
+
+            return
+
+        # --- Smart Alerts ---
+        if selected_gpu["temperature"] > 80:
+            update_cluster_alerts(1)
+        else:
+            update_cluster_alerts(0)
 
         confidence = get_confidence(scores)
 
@@ -141,9 +196,49 @@ def process_job(job_id: str):
             job_id=job.id,
         )
 
+        # Multi-objective reward for PPO learning
+        reward = 0
+
+        reward += (
+            cost_data["savings_usd"] * 100
+        )
+
+        reward -= (
+            selected_gpu["utilization"] * 0.1
+        )
+
+        reward -= (
+            selected_gpu["queue_depth"] * 2
+        )
+
+        reward -= (
+            selected_gpu["temperature"] * 0.05
+        )
+
+        experience.reward = round(
+            reward,
+            3
+        )
+
         db.add(experience)
 
         db.commit()
+
+        # Auto-retrain PPO every 50 experiences
+        import sys
+        import os
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+        from backend.tasks.retrain_task import (
+            retrain_rl_model
+        )
+
+        experience_count = (
+            db.query(RLExperience)
+            .count()
+        )
+
+        if experience_count % 50 == 0:
+            retrain_rl_model.delay()
 
         update_job_confidence(
             confidence
@@ -156,15 +251,39 @@ def process_job(job_id: str):
         )
 
         run_time = max(
-            5,
-            int(job.compute_intensity * 30)
+            15,
+            int(
+                job.memory_required * 0.5 +
+                job.compute_intensity * 20
+            )
         )
 
         print(
             f"[WORKER] Running job for {run_time}s"
         )
 
-        time.sleep(run_time)
+        # Resume from checkpoint if retrying
+        start_progress = (
+            job.checkpoint_progress or 0
+        )
+
+        start_tick = int(
+            (start_progress / 100) * run_time
+        )
+
+        # Update progress each second for live progress bar
+        for i in range(start_tick, run_time):
+            job.progress = int(
+                ((i + 1) / run_time) * 100
+            )
+
+            # Checkpoint every tick
+            job.checkpoint_progress = (
+                job.progress
+            )
+
+            db.commit()
+            time.sleep(1)
 
         complete_job_on_gpu(
             selected_gpu["id"],
@@ -182,6 +301,51 @@ def process_job(job_id: str):
         print(
             f"[WORKER] Completed {job.id}"
         )
+
+    except Exception as e:
+
+        print(
+            f"[WORKER] Job {job_id} failed: {e}"
+        )
+
+        # Re-fetch job in case of stale state
+        job = (
+            db.query(Job)
+            .filter(Job.id == uuid.UUID(job_id))
+            .first()
+        )
+
+        if job:
+
+            job.gpu_failed = True
+            job.failure_reason = str(e)
+
+            # Automatic retry (up to 3 attempts)
+            if job.retry_count < 3:
+
+                job.retry_count += 1
+
+                job.status = "queued"
+
+                db.commit()
+
+                print(
+                    f"[WORKER] Retrying job {job.id} "
+                    f"(attempt {job.retry_count}/3)"
+                )
+
+                process_job.delay(str(job.id))
+
+            else:
+
+                job.status = "dead"
+
+                db.commit()
+
+                print(
+                    f"[WORKER] Job {job.id} marked DEAD "
+                    f"after 3 retries"
+                )
 
     finally:
         db.close()

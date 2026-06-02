@@ -2,8 +2,13 @@ export default function ComparisonTable({ jobs }) {
   if (!jobs.length) return <p style={{ color: '#64748b', fontSize: 13 }}>No jobs yet - submit one above.</p>
 
   const totalSavedUsd = jobs.reduce((acc, j) => {
-    const s = (j.baseline_cost_usd || 0) - (j.predicted_cost_usd || 0)
-    return acc + (s > 0 ? s : 0)
+
+    const saved =
+      (j.baseline_cost || 0) -
+      (j.actual_cost || 0)
+
+    return acc + Math.max(saved, 0)
+
   }, 0)
 
   return (
@@ -23,8 +28,8 @@ export default function ComparisonTable({ jobs }) {
           </thead>
           <tbody>
             {jobs.map(job => {
-              const saved = (job.baseline_cost_usd || 0) - (job.predicted_cost_usd || 0)
-              const pct = job.baseline_cost_usd ? ((saved / job.baseline_cost_usd) * 100).toFixed(0) : 0
+              const saved = (job.baseline_cost || 0) - (job.actual_cost || 0)
+              const pct = job.baseline_cost ? ((saved / job.baseline_cost) * 100).toFixed(0) : 0
               return (
                 <tr key={job.job_id} style={styles.tr}>
                   <td style={styles.td}><span style={styles.mono}>{job.job_id?.slice(0, 8)}...</span></td>
@@ -35,8 +40,8 @@ export default function ComparisonTable({ jobs }) {
                       {job.status}
                     </span>
                   </td>
-                  <td style={styles.td}>${job.predicted_cost_usd?.toFixed(4) ?? '--'}</td>
-                  <td style={styles.td}>${job.baseline_cost_usd?.toFixed(4) ?? '--'}</td>
+                  <td style={styles.td}>${job.actual_cost?.toFixed(4) ?? '--'}</td>
+                  <td style={styles.td}>${job.baseline_cost?.toFixed(4) ?? '--'}</td>
                   <td style={styles.td}>
                     {saved > 0 ? (
                       <span style={{ color: '#10b981' }}>${saved.toFixed(4)} ({pct}%)</span>

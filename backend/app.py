@@ -31,6 +31,17 @@ for attempt in range(30):
 else:
     raise RuntimeError("Could not connect to PostgreSQL")
 
+import threading
+
+from services.metrics_updater import (
+    start_metrics_loop
+)
+
+threading.Thread(
+    target=start_metrics_loop,
+    daemon=True
+).start()
+
 app = FastAPI(
     title="SmartGPU Orchestrator",
     description="AI-driven GPU resource management with PPO reinforcement learning",

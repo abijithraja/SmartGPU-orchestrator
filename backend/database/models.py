@@ -39,6 +39,12 @@ class Job(Base):
     # Recovery
     retry_count = Column(Integer, default=0)
     oom_occurred = Column(Boolean, default=False)
+    gpu_failed = Column(Boolean, default=False)
+    failure_reason = Column(String, nullable=True)
+
+    # Progress tracking (0-100)
+    progress = Column(Integer, default=0)
+    checkpoint_progress = Column(Integer, default=0)
 
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
 

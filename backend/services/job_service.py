@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -112,6 +113,9 @@ def get_all_jobs(db: Session, limit: int = 50):
                 if job.completed_at
                 else None
             ),
+            "retry_count": job.retry_count or 0,
+            "gpu_failed": job.gpu_failed or False,
+            "failure_reason": job.failure_reason,
         }
         for job in jobs
     ]
@@ -131,6 +135,7 @@ def get_running_jobs(db: Session):
             "model_name": job.model_name,
             "assigned_gpu": job.assigned_gpu_id,
             "status": job.status,
+            "progress": job.progress or 0,
         }
         for job in jobs
     ]
@@ -150,6 +155,12 @@ def get_queued_jobs(db: Session):
             "model_name": job.model_name,
             "priority": job.priority,
             "status": job.status,
+            "wait_time": int(
+                (
+                    datetime.utcnow()
+                    - job.created_at
+                ).total_seconds()
+            ) if job.created_at else 0,
         }
         for job in jobs
     ]
