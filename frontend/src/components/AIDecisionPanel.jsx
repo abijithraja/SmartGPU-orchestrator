@@ -7,16 +7,34 @@ export default function AIDecisionPanel({ decision }) {
     )
   }
 
-  const savings = decision.baseline_cost_usd && decision.predicted_cost_usd
-    ? (decision.baseline_cost_usd - decision.predicted_cost_usd).toFixed(4)
+  const savings = decision.cost_saved
+    ? decision.cost_saved.toFixed(4)
     : null
 
-  const savingsPct = decision.baseline_cost_usd && decision.predicted_cost_usd
-    ? (((decision.baseline_cost_usd - decision.predicted_cost_usd) / decision.baseline_cost_usd) * 100).toFixed(1)
-    : null
+  const savingsPct =
+    decision.baseline_cost && decision.cost_saved
+      ? ((decision.cost_saved / decision.baseline_cost) * 100).toFixed(1)
+      : null
 
   return (
     <div style={styles.panel}>
+      <div>
+        <div
+          style={{
+            display: 'inline-block',
+            background: '#1e293b',
+            color: '#38bdf8',
+            padding: '4px 10px',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 600,
+            marginBottom: 12
+          }}
+        >
+          PPO Reinforcement Learning
+        </div>
+      </div>
+
       <div style={styles.row}>
         <div style={styles.section}>
           <div style={styles.sectionLabel}>Job ID</div>
@@ -29,7 +47,7 @@ export default function AIDecisionPanel({ decision }) {
         <div style={styles.section}>
           <div style={styles.sectionLabel}>Confidence</div>
           <div style={{ ...styles.highlight, color: '#10b981' }}>
-            {decision.confidence ? `${(decision.confidence * 100).toFixed(0)}%` : '--'}
+            {decision.confidence !== undefined ? `${(decision.confidence * 100).toFixed(1)}%` : '--'}
           </div>
         </div>
         <div style={styles.section}>
@@ -38,6 +56,34 @@ export default function AIDecisionPanel({ decision }) {
             {decision.status}
           </span>
         </div>
+
+        <div style={styles.section}>
+          <div style={styles.sectionLabel}>Decision Source</div>
+          <div style={{ ...styles.highlight, color: '#f59e0b' }}>
+            PPO Agent
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <div style={styles.sectionLabel}>RL Cost</div>
+          <div style={{ ...styles.highlight, color: '#06b6d4', fontSize: 18 }}>
+            ${decision.actual_cost?.toFixed(4) || '--'}
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <div style={styles.sectionLabel}>Baseline Cost</div>
+          <div style={{ ...styles.highlight, color: '#f97316', fontSize: 18 }}>
+            ${decision.baseline_cost?.toFixed(4) || '--'}
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <div style={styles.sectionLabel}>Savings</div>
+          <div style={{ ...styles.highlight, color: '#22c55e', fontSize: 18 }}>
+            {savings ? `$${savings}` : '--'}
+          </div>
+        </div>
       </div>
 
       {savings && (
@@ -45,13 +91,13 @@ export default function AIDecisionPanel({ decision }) {
           <span style={styles.savingsText}>
             AI saved <strong>${savings}</strong> ({savingsPct}%) vs round-robin baseline
           </span>
-          <span>AI: ${decision.predicted_cost_usd?.toFixed(4)} - Baseline: ${decision.baseline_cost_usd?.toFixed(4)}</span>
+          <span>AI: ${decision.actual_cost?.toFixed(4)} - Baseline: ${decision.baseline_cost?.toFixed(4)}</span>
         </div>
       )}
 
       {decision.explanation && (
         <div style={styles.explanation}>
-          <div style={styles.explainLabel}>Why this GPU?</div>
+          <div style={styles.explainLabel}>AI DECISION EXPLANATION</div>
           <pre style={styles.explainText}>{decision.explanation}</pre>
         </div>
       )}

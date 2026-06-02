@@ -25,19 +25,21 @@ def _load_model():
     global _model, _model_loaded
     if _model_loaded:
         return _model
+        
+    from config import MODEL_PATH
+    model_path = os.path.abspath(MODEL_PATH)
+    
     try:
         from stable_baselines3 import PPO
-        from config import MODEL_PATH
-        model_path = os.path.abspath(MODEL_PATH)
-        if os.path.exists(model_path):
-            _model = PPO.load(model_path)
-            logger.info(f"PPO model loaded from {model_path}")
-        else:
-            logger.warning(f"Model not found at {model_path}. Using round-robin fallback.")
-            _model = None
+        
+        # Let SB3 handle the .zip extension and file loading
+        _model = PPO.load(model_path)
+        logger.warning(f"PPO MODEL LOADED: {model_path}")
+        
     except Exception as e:
-        logger.error(f"Failed to load model: {e}")
+        logger.warning(f"PPO load failed at {model_path}: {e}. Using round-robin fallback.")
         _model = None
+        
     _model_loaded = True
     return _model
 
@@ -129,12 +131,18 @@ def schedule_job(
     # Get RL scores
     rl_scores = _get_rl_scores(gpu_states, job_memory, job_intensity)
 
+    logger.warning(f"RL SCORES: {rl_scores}")
+
     # Apply rule guard (safety filter)
     result = apply_rules(job_memory, gpu_states, rl_scores)
     if result is None:
         return None, rl_scores, True   # Hold in queue
 
     selected_gpu, _ = result
+
+    logger.warning("USED RL: True")
+    logger.warning(f"SELECTED GPU: {selected_gpu['id']}")
+
     return selected_gpu, rl_scores, True
 
 

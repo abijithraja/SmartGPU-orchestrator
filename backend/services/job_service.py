@@ -17,6 +17,7 @@ def create_job(db: Session, job: JobCreate):
         status="queued",
         model_name=job.model_name,
         memory_required=job.memory_required,
+        compute_intensity=job.compute_intensity,
         priority=job.priority,
     )
 
@@ -54,9 +55,16 @@ def get_job(db: Session, job_id: str):
     return {
         "job_id": str(db_job.id),
         "status": db_job.status,
+        "assigned_gpu": db_job.assigned_gpu_id,
+        "confidence": db_job.ai_confidence,
+        "predicted_cost_usd": db_job.predicted_cost,
+        "actual_cost_usd": db_job.actual_cost,
+        "baseline_cost_usd": db_job.baseline_cost,
+        "explanation": db_job.ai_explanation,
         "details": {
             "model_name": db_job.model_name,
             "memory_required": db_job.memory_required,
+            "compute_intensity": db_job.compute_intensity,
             "priority": db_job.priority,
         },
         "created_at": (
@@ -84,8 +92,15 @@ def get_all_jobs(db: Session, limit: int = 50):
             "job_id": str(job.id),
             "status": job.status,
             "model_name": job.model_name,
-            "memory_required": job.memory_required,
-            "priority": job.priority,
+            "assigned_gpu": job.assigned_gpu_id,
+            "confidence": job.ai_confidence,
+            "actual_cost": job.actual_cost,
+            "baseline_cost": job.baseline_cost,
+            "cost_saved": (
+                job.baseline_cost - job.actual_cost
+                if job.baseline_cost and job.actual_cost
+                else 0
+            ),
             "created_at": (
                 job.created_at.isoformat()
                 if job.created_at

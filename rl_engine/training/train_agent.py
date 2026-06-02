@@ -14,7 +14,15 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 
 # Allow imports from simulator/
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        ".."
+    )
+)
+sys.path.insert(0, PROJECT_ROOT)
+
 from simulator.gpu_simulator import GPUCluster
 
 N_GPUS = 4

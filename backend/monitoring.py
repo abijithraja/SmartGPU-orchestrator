@@ -28,6 +28,11 @@ jobs_queued_total = Gauge(
     "Total queued jobs"
 )
 
+job_confidence = Gauge(
+    "smartgpu_job_confidence",
+    "Latest AI confidence"
+)
+
 # =========================
 # GPU METRICS
 # =========================
@@ -63,6 +68,21 @@ gpu_queue_depth = Gauge(
 cost_savings_percent = Gauge(
     "smartgpu_cost_savings_percent",
     "Cost savings percent"
+)
+
+job_rl_cost = Gauge(
+    "smartgpu_job_rl_cost_usd",
+    "RL job cost"
+)
+
+job_baseline_cost = Gauge(
+    "smartgpu_job_baseline_cost_usd",
+    "Baseline cost"
+)
+
+cost_savings_usd = Gauge(
+    "smartgpu_cost_savings_usd",
+    "Savings in USD"
 )
 
 # =========================
@@ -129,8 +149,22 @@ def update_gpu_metrics(gpu_states: list) -> None:
 
 
 # =========================
-# COST SAVINGS
+# COST SAVINGS & AI HELPERS
 # =========================
 
 def update_cost_savings(percent: float) -> None:
     cost_savings_percent.set(percent)
+
+
+def update_job_confidence(confidence: float) -> None:
+    job_confidence.set(confidence)
+
+
+def update_job_costs(
+    rl_cost: float,
+    baseline_cost: float,
+    savings_usd: float,
+) -> None:
+    job_rl_cost.set(rl_cost)
+    job_baseline_cost.set(baseline_cost)
+    cost_savings_usd.set(savings_usd)

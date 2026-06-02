@@ -39,3 +39,33 @@ def get_gpu_by_id(gpu_id: str) -> dict:
             return gpu
 
     return {}
+
+
+def assign_job_to_gpu(
+    gpu_id: str,
+    memory_required: int,
+    compute_intensity: float,
+):
+    for gpu in _cluster.gpus:
+        if gpu.id == gpu_id:
+            gpu.assign_job(
+                memory_required,
+                compute_intensity,
+            )
+            return True
+
+    return False
+
+
+def complete_job_on_gpu(
+    gpu_id: str,
+    memory_required: int,
+):
+    for gpu in _cluster.gpus:
+        if gpu.id == gpu_id:
+            gpu.complete_job(
+                memory_required
+            )
+            return True
+
+    return False

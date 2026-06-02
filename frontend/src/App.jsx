@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import JobSubmit from './components/JobSubmit'
@@ -10,7 +11,6 @@ const API = 'http://localhost:8000'
 export default function App() {
   const [gpus, setGpus] = useState([])
   const [jobs, setJobs] = useState([])
-  const [lastDecision, setLastDecision] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const fetchGpus = useCallback(async () => {
@@ -34,19 +34,29 @@ export default function App() {
   useEffect(() => {
     fetchGpus()
     fetchJobs()
+    
+    // Background polling every 2 seconds
     const interval = setInterval(() => {
       fetchGpus()
       fetchJobs()
-    }, 10000)
+    }, 2000)
     return () => clearInterval(interval)
   }, [fetchGpus, fetchJobs])
 
   const handleJobSubmit = async (jobData) => {
     setLoading(true)
     try {
-      const res = await axios.post(`${API}/jobs/`, jobData)
-      setLastDecision(res.data)
+      await axios.post(`${API}/jobs/`, jobData)
+      
+      // Initial fetch to get the 'queued' or 'running' state
       await fetchJobs()
+
+      // Burst polling to catch the worker completion (~5s delay)
+      setTimeout(fetchJobs, 2000)
+      setTimeout(fetchJobs, 4000)
+      setTimeout(fetchJobs, 6000)
+      setTimeout(fetchJobs, 8000)
+
     } catch (err) {
       alert('Job submission failed: ' + (err.response?.data?.detail || err.message))
     } finally {
@@ -55,9 +65,18 @@ export default function App() {
   }
 
   const totalSavings = jobs.reduce((acc, j) => {
-    const s = (j.baseline_cost_usd || 0) - (j.predicted_cost_usd || 0)
+    const s = (j.baseline_cost || 0) - (j.actual_cost || 0)
     return acc + (s > 0 ? s : 0)
   }, 0)
+
+  // Extract the latest completed decision using precise timestamps
+  const latestCompletedDecision = jobs
+    .filter((j) => j.status === 'completed')
+    .sort(
+      (a, b) =>
+        new Date(b.completed_at) -
+        new Date(a.completed_at)
+    )[0]
 
   return (
     <div style={styles.app}>
@@ -85,7 +104,7 @@ export default function App() {
 
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
           <h2 style={styles.cardTitle}>AI Decision Panel</h2>
-          <AIDecisionPanel decision={lastDecision} />
+          <AIDecisionPanel decision={latestCompletedDecision} />
         </section>
 
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
