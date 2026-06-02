@@ -85,11 +85,32 @@ def _get_rl_scores(
     model = _load_model()
     if model is None:
         # Heuristic fallback scores
-        return [
-            (g["free_memory"] / max(g.get("total_memory", 24), 1)) * 0.6
-            + (1 - g["utilization"] / 100) * 0.4
-            for g in gpu_states
-        ]
+        scores = []
+
+        for g in gpu_states:
+
+            memory_score = (
+                g["free_memory"]
+                / max(g.get("total_memory", 24), 1)
+            )
+
+            util_score = (
+                1 - g["utilization"] / 100
+            )
+
+            queue_penalty = (
+                g.get("queue_depth", 0) * 0.15
+            )
+
+            score = (
+                memory_score * 0.4
+                + util_score * 0.4
+                - queue_penalty
+            )
+
+            scores.append(score)
+
+        return scores
 
     obs = _build_obs(gpu_states, job_memory, job_intensity)
     # Get raw action probabilities from the policy network
@@ -130,6 +151,11 @@ def schedule_job(
 
     # Get RL scores
     rl_scores = _get_rl_scores(gpu_states, job_memory, job_intensity)
+
+    for i, gpu in enumerate(gpu_states):
+        queue_penalty = gpu.get("queue_depth", 0) * 0.25
+        util_penalty = (gpu["utilization"] / 100) * 0.20
+        rl_scores[i] -= queue_penalty + util_penalty
 
     logger.warning(f"RL SCORES: {rl_scores}")
 

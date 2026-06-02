@@ -4,6 +4,9 @@ import axios from 'axios'
 import JobSubmit from './components/JobSubmit'
 import GPUStatusGrid from './components/GPUStatusGrid'
 import AIDecisionPanel from './components/AIDecisionPanel'
+import RLAgentExplain from './components/RLAgentExplain'
+import RunningJobsPanel from './components/RunningJobsPanel'
+import QueuePanel from './components/QueuePanel'
 import ComparisonTable from './components/ComparisonTable'
 
 const API = 'http://localhost:8000'
@@ -11,6 +14,8 @@ const API = 'http://localhost:8000'
 export default function App() {
   const [gpus, setGpus] = useState([])
   const [jobs, setJobs] = useState([])
+  const [runningJobs, setRunningJobs] = useState([])
+  const [queuedJobs, setQueuedJobs] = useState([])
   const [loading, setLoading] = useState(false)
 
   const fetchGpus = useCallback(async () => {
@@ -31,17 +36,39 @@ export default function App() {
     }
   }, [])
 
+  const fetchRunningJobs = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/jobs/running`)
+      setRunningJobs(res.data)
+    } catch (err) {
+      console.error('Running jobs fetch error:', err.message)
+    }
+  }, [])
+
+  const fetchQueuedJobs = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/jobs/queued`)
+      setQueuedJobs(res.data)
+    } catch (err) {
+      console.error('Queued jobs fetch error:', err.message)
+    }
+  }, [])
+
   useEffect(() => {
     fetchGpus()
     fetchJobs()
+    fetchRunningJobs()
+    fetchQueuedJobs()
     
     // Background polling every 2 seconds
     const interval = setInterval(() => {
       fetchGpus()
       fetchJobs()
+      fetchRunningJobs()
+      fetchQueuedJobs()
     }, 2000)
     return () => clearInterval(interval)
-  }, [fetchGpus, fetchJobs])
+  }, [fetchGpus, fetchJobs, fetchRunningJobs, fetchQueuedJobs])
 
   const handleJobSubmit = async (jobData) => {
     setLoading(true)
@@ -50,12 +77,16 @@ export default function App() {
       
       // Initial fetch to get the 'queued' or 'running' state
       await fetchJobs()
+      await fetchRunningJobs()
+      await fetchQueuedJobs()
 
       // Burst polling to catch the worker completion (~5s delay)
       setTimeout(fetchJobs, 2000)
       setTimeout(fetchJobs, 4000)
       setTimeout(fetchJobs, 6000)
       setTimeout(fetchJobs, 8000)
+      setTimeout(fetchRunningJobs, 2000)
+      setTimeout(fetchQueuedJobs, 2000)
 
     } catch (err) {
       alert('Job submission failed: ' + (err.response?.data?.detail || err.message))
@@ -105,6 +136,21 @@ export default function App() {
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
           <h2 style={styles.cardTitle}>AI Decision Panel</h2>
           <AIDecisionPanel decision={latestCompletedDecision} />
+        </section>
+
+        <section style={{ ...styles.card, gridColumn: '1 / -1' }}>
+          <h2 style={styles.cardTitle}>PPO Decision Details</h2>
+          <RLAgentExplain decision={latestCompletedDecision} />
+        </section>
+
+        <section style={styles.card}>
+          <h2 style={styles.cardTitle}>Running Jobs</h2>
+          <RunningJobsPanel jobs={runningJobs} />
+        </section>
+
+        <section style={styles.card}>
+          <h2 style={styles.cardTitle}>Queued Jobs</h2>
+          <QueuePanel jobs={queuedJobs} />
         </section>
 
         <section style={{ ...styles.card, gridColumn: '1 / -1' }}>

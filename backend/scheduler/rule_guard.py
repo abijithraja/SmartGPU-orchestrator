@@ -26,7 +26,17 @@ def apply_rules(
             reasons.append(f"saturated ({gpu['utilization']}% util)")
 
         if not reasons:
-            valid.append((gpu, score))
+            adjusted_score = (
+                score
+                - (gpu["queue_depth"] * 0.25)
+            )
+
+            valid.append(
+                (
+                    gpu,
+                    adjusted_score
+                )
+            )
 
     if not valid:
         return None  # All GPUs unsafe - caller must hold job and retry

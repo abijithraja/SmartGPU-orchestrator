@@ -20,7 +20,6 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
-
   backend:
     build:
       context: .
@@ -44,13 +43,14 @@ services:
     volumes:
       - .:/app
 
+
   worker:
     build:
       context: .
       dockerfile: backend/Dockerfile
     container_name: smartgpu-worker
     working_dir: /app/backend
-    command: celery -A celery_app.celery worker --loglevel=info --pool=solo
+    command: celery -A celery_app.celery worker --loglevel=info
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0

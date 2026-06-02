@@ -118,9 +118,13 @@ def process_job(job_id: str):
         job.predicted_cost = cost_data["ai_cost_usd"]
 
         job.ai_explanation = (
-            f"Selected {selected_gpu['id']} "
-            f"using {'PPO' if used_rl else 'Round Robin'} "
-            f"(confidence {confidence})"
+            f"GPU {selected_gpu['id']} selected. "
+            f"Free Memory: {selected_gpu['free_memory']}GB, "
+            f"Utilization: {selected_gpu['utilization']}%, "
+            f"Temperature: {selected_gpu['temperature']}C, "
+            f"Queue Depth: {selected_gpu['queue_depth']}. "
+            f"Decision source: "
+            f"{'PPO Reinforcement Learning' if used_rl else 'Round Robin'}."
         )
 
         db.commit()
@@ -151,12 +155,16 @@ def process_job(job_id: str):
             cost_data["savings_usd"],
         )
 
-        print(
-            f"[WORKER] Assigned "
-            f"{job.id} -> {selected_gpu['id']}"
+        run_time = max(
+            5,
+            int(job.compute_intensity * 30)
         )
 
-        time.sleep(5)
+        print(
+            f"[WORKER] Running job for {run_time}s"
+        )
+
+        time.sleep(run_time)
 
         complete_job_on_gpu(
             selected_gpu["id"],

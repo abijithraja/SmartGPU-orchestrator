@@ -101,11 +101,55 @@ def get_all_jobs(db: Session, limit: int = 50):
                 if job.baseline_cost and job.actual_cost
                 else 0
             ),
+            "explanation": job.ai_explanation,
             "created_at": (
                 job.created_at.isoformat()
                 if job.created_at
                 else None
             ),
+            "completed_at": (
+                job.completed_at.isoformat()
+                if job.completed_at
+                else None
+            ),
+        }
+        for job in jobs
+    ]
+
+
+def get_running_jobs(db: Session):
+
+    jobs = (
+        db.query(Job)
+        .filter(Job.status == "running")
+        .all()
+    )
+
+    return [
+        {
+            "job_id": str(job.id),
+            "model_name": job.model_name,
+            "assigned_gpu": job.assigned_gpu_id,
+            "status": job.status,
+        }
+        for job in jobs
+    ]
+
+
+def get_queued_jobs(db: Session):
+
+    jobs = (
+        db.query(Job)
+        .filter(Job.status == "queued")
+        .all()
+    )
+
+    return [
+        {
+            "job_id": str(job.id),
+            "model_name": job.model_name,
+            "priority": job.priority,
+            "status": job.status,
         }
         for job in jobs
     ]
