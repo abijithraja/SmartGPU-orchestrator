@@ -1,39 +1,18 @@
 export default function GPUHeatMap({ gpus }) {
-
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 12
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {gpus.map(gpu => {
-
-        const util = gpu.utilization
-
-        let color = '#22c55e'
-
-        if (util > 40)
-          color = '#f59e0b'
-
-        if (util > 70)
-          color = '#ef4444'
-
+        const util = Math.round(gpu.utilization)
+        let color = 'var(--green)'
+        if (util > 50) color = 'var(--orange)'
+        if (util > 80) color = 'var(--red)'
         return (
-          <div
-            key={gpu.id}
-            style={{
-              background: color,
-              borderRadius: 10,
-              padding: 20,
-              textAlign: 'center',
-              fontWeight: 700,
-              transition: 'background 0.5s ease'
-            }}
-          >
-            <div style={{ fontSize: 14, marginBottom: 4 }}>{gpu.id}</div>
-            <div style={{ fontSize: 22 }}>{util}%</div>
+          <div key={gpu.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 50, fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>{gpu.id.toUpperCase()}</div>
+            <div style={{ flex: 1, height: 12, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+              <div style={{ width: `${util}%`, background: color, height: '100%' }} />
+            </div>
+            <div style={{ width: 40, textAlign: 'right', fontSize: 12, color: 'var(--text)' }}>{util}%</div>
           </div>
         )
       })}

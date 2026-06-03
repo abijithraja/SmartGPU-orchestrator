@@ -73,12 +73,19 @@ def process_job(job_id: str):
         )
 
         if selected_gpu is None:
-
             job.status = "queued"
-
             db.commit()
-
             return
+
+        # --- Hybrid Scheduler Override ---
+        # If the RL agent stubbornly picks a heavily loaded GPU, 
+        # force selection of the least loaded valid GPU to balance the cluster.
+        if selected_gpu["utilization"] > 80:
+            available_gpus = [g for g in gpu_states if g["free_memory"] >= job.memory_required and g["utilization"] < 80]
+            if available_gpus:
+                selected_gpu = min(available_gpus, key=lambda g: g["utilization"])
+                used_rl = False
+                print(f"[WORKER] Hybrid Override: Forced least loaded GPU {selected_gpu['id']}")
 
         # --- OOM Detection ---
         if job.memory_required > selected_gpu["free_memory"]:
@@ -199,21 +206,28 @@ def process_job(job_id: str):
         # Multi-objective reward for PPO learning
         reward = 0
 
+        # 1. Base Savings Bonus
         reward += (
             cost_data["savings_usd"] * 100
         )
 
-        reward -= (
-            selected_gpu["utilization"] * 0.1
-        )
+        # 2. Resource/Utilization Penalty (Fix #1)
+        reward += (selected_gpu["free_memory"] * 0.4)
+        reward -= (selected_gpu["utilization"] * 0.3)
 
-        reward -= (
-            selected_gpu["queue_depth"] * 2
-        )
+        # 3. Queue & Temperature Penalties
+        reward -= (selected_gpu["queue_depth"] * 2)
+        reward -= (selected_gpu["temperature"] * 0.05)
 
-        reward -= (
-            selected_gpu["temperature"] * 0.05
-        )
+        # 4. Repeated Assignment Penalty (Fix #2)
+        recent_jobs = db.query(Job).filter(Job.assigned_gpu_id.isnot(None)).order_by(Job.created_at.desc()).limit(10).all()
+        recent_assignment_count = sum(1 for j in recent_jobs if j.assigned_gpu_id == selected_gpu["id"])
+        reward -= (recent_assignment_count * 5)
+
+        # 5. Load Balance Bonus (Fix #4)
+        import numpy as np
+        std_dev = np.std([g["utilization"] for g in gpu_states])
+        reward -= float(std_dev)
 
         experience.reward = round(
             reward,
@@ -251,11 +265,8 @@ def process_job(job_id: str):
         )
 
         run_time = max(
-            15,
-            int(
-                job.memory_required * 0.5 +
-                job.compute_intensity * 20
-            )
+            30,
+            int((job.memory_required * job.compute_intensity) / 10)
         )
 
         print(

@@ -152,23 +152,37 @@ def schedule_job(
     # Get RL scores
     rl_scores = _get_rl_scores(gpu_states, job_memory, job_intensity)
 
+    from database.db import SessionLocal
+    from database.models import Job
+
+    db = SessionLocal()
+    recent_jobs = db.query(Job).filter(Job.assigned_gpu_id.isnot(None)).order_by(Job.created_at.desc()).limit(12).all()
+    recent_counts = {}
+    for j in recent_jobs:
+        recent_counts[j.assigned_gpu_id] = recent_counts.get(j.assigned_gpu_id, 0) + 1
+    db.close()
+
     for i, gpu in enumerate(gpu_states):
         queue_penalty = (
-            gpu.get("queue_depth", 0) * 0.4
+            gpu.get("queue_depth", 0) * 1.50
         )
 
         util_penalty = (
             gpu["utilization"] / 100
-        ) * 0.3
+        ) * 0.80
 
         temp_penalty = (
             gpu["temperature"] / 100
-        ) * 0.15
+        ) * 0.40
+
+        # Massive inference penalty for recently assigned GPUs (overrides bad RL weights immediately)
+        recent_penalty = recent_counts.get(gpu["id"], 0) * 0.50
 
         rl_scores[i] -= (
             queue_penalty +
             util_penalty +
-            temp_penalty
+            temp_penalty +
+            recent_penalty
         )
 
     logger.warning(f"RL SCORES: {rl_scores}")

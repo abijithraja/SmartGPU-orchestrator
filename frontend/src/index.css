@@ -1,0 +1,27 @@
+:root {
+  --bg: #050505;
+  --panel: #0b0b0b;
+  --panel-hover: #121212;
+  --border: #1f1f1f;
+  --text: #ffffff;
+  --text-muted: #9ca3af;
+  --blue: #3b82f6;
+  --green: #10b981;
+  --orange: #f59e0b;
+  --red: #ef4444;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}

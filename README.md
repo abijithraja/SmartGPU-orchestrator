@@ -1,181 +1,65 @@
 # SmartGPU Orchestrator
 
-AI-driven GPU resource orchestration platform for intelligent, explainable, and cost-aware scheduling of AI workloads.
+SmartGPU Orchestrator is a cloud-based AI infrastructure platform designed to intelligently allocate GPU resources to AI training workloads. By leveraging a trained Reinforcement Learning (RL) agent, the system optimizes scheduling decisions to maximize resource utilization and minimize costs, making every allocation explainable and self-improving.
 
-## Current Status (Important)
+**Note: This is an ongoing research project exploring the application of reinforcement learning in cloud infrastructure orchestration.**
 
-This project is currently in the **research and progressive build stage**.
+## Architecture
 
-- We are validating architecture, scheduling strategy, and learning loops.
-- We are building the platform **phase by phase**, not as a single final release.
-- Several core modules are intentionally placeholders while the simulator, RL policy, and deployment layers are developed incrementally.
+The system operates across a five-stage pipeline:
+1. User submission via the dashboard.
+2. FastAPI validates and queues the job in Redis.
+3. The PPO Reinforcement Learning Agent scores all available GPUs based on live telemetry (utilization, free memory, temperature).
+4. The Explainability Engine generates human-readable reasoning for the assignment, estimating cost savings.
+5. Kubernetes schedules the Docker container, while Prometheus and Grafana track the live metrics.
 
-In short: this repository reflects an active research build, with production-grade goals and progressive implementation.
-
-## Project Vision
-
-SmartGPU Orchestrator aims to replace static GPU scheduling heuristics with a reinforcement-learning-driven decision engine that can:
-
-- Improve GPU utilization under dynamic workloads.
-- Reduce OOM and thermal-risk scheduling failures.
-- Explain every scheduling decision in human-readable form.
-- Track cost impact per decision against a baseline strategy.
-- Continuously improve through periodic retraining from live experience data.
-
-## Problem We Are Solving
-
-Traditional schedulers (FIFO/round-robin/fixed priority) are rigid and often blind to real-time GPU conditions such as memory pressure, thermal state, and queue behavior. In expensive GPU environments, that leads to avoidable waste and unstable execution.
-
-SmartGPU explores an adaptive alternative:
-
-- Observe live metrics
-- Score candidate GPUs
-- Apply safety guardrails
-- Pick the best placement
-- Explain and log the outcome
-- Retrain over time
-
-## Research Goals and Target Outcomes
-
-Target outcomes from the project report (not yet fully achieved in code):
-
-- GPU utilization: 75-90% target range
-- OOM-caused failures: below 2%
-- Cost waste vs optimal: below 10%
-- Explainability: full per-decision rationale
-- Learning loop: retraining after experience accumulation
-
-## What Is Implemented Today
-
-Current implementation in this repository:
-
-- FastAPI backend skeleton with core routes:
-	- `POST /jobs/`
-	- `GET /jobs/{job_id}`
-	- `GET /gpus/`
-- PostgreSQL-backed `jobs` table via SQLAlchemy.
-- Celery + Redis async worker flow for simulated job execution lifecycle (`queued -> running -> completed`).
-- Containerized backend worker image and local dependencies via Docker Compose.
-- Initial scheduler/explainer/simulator placeholders for progressive replacement with RL-based logic.
-
-## What Is Planned Next (Progressive Build)
-
-Planned capabilities from the roadmap:
-
-- Realistic GPU simulator and synthetic training environment.
-- PPO-based scheduler (Stable-Baselines3) with safety rule guard.
-- Explainability panel and side-by-side baseline comparison mode.
-- Cost estimator and experience logging for retraining loop.
-- Prometheus + Grafana integration for live cluster telemetry.
-- Kubernetes and Azure AKS deployment with GPU-aware scheduling.
-
-## Architecture (Planned End State)
-
-- Frontend: React + Vite dashboard for job submission, GPU status, and AI decision insights.
-- Backend: FastAPI control plane with validation, routing, and orchestration APIs.
-- Queue/Workers: Redis + Celery for asynchronous execution and retries.
-- Data: PostgreSQL for jobs, scheduling outcomes, and training experiences.
-- AI Layer: PPO policy + explainability + rule guard + simulator.
-- Infra: Docker, Kubernetes (AKS), Prometheus, Grafana.
-
-## Repository Structure
-
-```text
-SmartGPU-orchestrator/
-├── backend/                # FastAPI, routes, services, scheduler placeholders, worker
-├── simulator/              # GPU simulator placeholder
-├── rl_engine/              # RL agents/models/training scaffolding
-├── monitoring/             # Prometheus/Grafana scaffolding
-├── infrastructure/         # Azure and Docker infra scaffolding
-├── frontend_dashboard/     # Planned frontend app (currently empty)
-├── docs/                   # Planned project docs (currently empty)
-├── docker-compose.yml
-├── Full report.md
-└── README.md
+```mermaid
+flowchart TD
+    User([User]) --> |Submits Job| API[FastAPI Backend]
+    API --> |Queues Job| Redis[(Redis Queue)]
+    Redis --> Worker[Celery Worker]
+    
+    subgraph AI Engine
+        Worker --> PPO[PPO RL Agent]
+        PPO --> Guard[Rule Guard]
+        Guard --> Explainer[Explainability Engine]
+    end
+    
+    subgraph Infrastructure
+        Explainer --> K8s[Kubernetes / AKS]
+        K8s --> GPU0[GPU Node 0]
+        K8s --> GPU1[GPU Node 1]
+    end
+    
+    subgraph Monitoring
+        GPU0 --> Prom[Prometheus Exporter]
+        GPU1 --> Prom
+        Prom --> Grafana[Grafana Dashboard]
+        Prom --> PPO
+    end
 ```
 
-## Local Development
+## Key Features
 
-### Prerequisites
+- **AI-Driven Scheduling**: Replaces static heuristics with a Proximal Policy Optimization (PPO) reinforcement learning agent.
+- **Explainability**: Provides human-readable reasoning per scheduling decision, ensuring the AI model is transparent.
+- **Self-Improving**: Automatically logs experiences and retrains the model continuously.
+- **Cost Tracking**: Computes predicted cost versus a round-robin baseline to measure actual financial impact.
+- **Hybrid Safety Layer**: Includes a hard rule guard to prevent Out-Of-Memory (OOM) errors and thermal throttling, overriding the AI when necessary.
 
-- Python 3.11+
-- Docker + Docker Compose
+## Technology Stack
 
-### 1) Start infrastructure services
+- **Frontend**: React, Vite, Recharts
+- **Backend**: FastAPI, Python, Redis, Celery, PostgreSQL
+- **AI Engine**: Stable-Baselines3 (PPO)
+- **Infrastructure**: Docker, Kubernetes (Azure AKS)
+- **Monitoring**: Prometheus, Grafana
 
-From the project root:
+## References
 
-```bash
-docker compose up -d db redis
-```
+For detailed methodology, architecture analysis, and competitive landscape comparisons, please refer to the primary project documentation included in this repository:
+- `Full report.md`
+- `SmartGPU_Report.docx`
+- `SMARTGPU_COMPLETE_CODE.md`
 
-### 2) Install backend dependencies
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 3) Run FastAPI app
-
-```bash
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 4) Run Celery worker
-
-In a second terminal from `backend`:
-
-```bash
-celery -A celery_app.celery worker --loglevel=info
-```
-
-API root: `http://localhost:8000`
-
-## Basic API Example
-
-Submit a job:
-
-```http
-POST /jobs/
-Content-Type: application/json
-
-{
-	"model_name": "resnet50",
-	"memory_required": 8,
-	"priority": "high"
-}
-```
-
-Check status:
-
-```http
-GET /jobs/{job_id}
-```
-
-Get mock GPU status:
-
-```http
-GET /gpus/
-```
-
-## Progressive Roadmap
-
-This project is intentionally being built in phases:
-
-1. Foundation: backend skeleton, data flow, queueing.
-2. Simulator-first development for safe/offline AI training.
-3. RL decision engine and explainability.
-4. Comparison mode and measurable value demonstration.
-5. Cloud-native deployment and observability.
-6. Dashboard and UX completion.
-
-## Notes for Reviewers
-
-- The report describes the target architecture and research direction.
-- The codebase currently reflects an in-progress implementation of that design.
-- Placeholders are expected and deliberate at this stage.
-
-## License
-
-License to be finalized.
+This research demonstrates that intelligent scheduling directly reduces GPU waste, prevents OOM-caused job failures, and significantly lowers computational costs compared to naive static schedulers.

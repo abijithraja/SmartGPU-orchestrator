@@ -9,7 +9,7 @@ from sqlalchemy.exc import OperationalError
 from database import models
 from database.db import Base, engine, SessionLocal
 
-from routes import gpus, jobs
+from routes import gpus, jobs, cluster
 
 from monitoring import update_jobs_metrics
 
@@ -61,6 +61,7 @@ app.add_middleware(
 
 app.include_router(jobs.router)
 app.include_router(gpus.router)
+app.include_router(cluster.router, prefix="/api/cluster")
 
 
 @app.get("/")

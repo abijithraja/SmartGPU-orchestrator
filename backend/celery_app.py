@@ -8,3 +8,7 @@ celery = Celery(
     backend=REDIS_URL,
     include=["worker"],
 )
+
+celery.conf.update(
+    broker_connection_retry_on_startup=True
+)

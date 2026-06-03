@@ -4,7 +4,7 @@ export default function JobSubmit({ onSubmit, loading }) {
   const [form, setForm] = useState({
     model_name: 'ResNet-50',
     memory_required: 8,
-    compute_intensity: 0.7,
+    compute_intensity: 70,
     priority: 'normal',
   })
 
@@ -13,13 +13,16 @@ export default function JobSubmit({ onSubmit, loading }) {
     setForm(prev => ({
       ...prev,
       [name]: name === 'memory_required' ? parseInt(value) :
-               name === 'compute_intensity' ? parseFloat(value) : value
+               name === 'compute_intensity' ? parseInt(value) : value
     }))
   }
 
   const handleSubmit = () => {
     if (!form.model_name.trim()) return alert('Model name required')
-    onSubmit(form)
+    onSubmit({
+      ...form,
+      compute_intensity: form.compute_intensity / 100.0
+    })
   }
 
   return (
@@ -30,11 +33,11 @@ export default function JobSubmit({ onSubmit, loading }) {
       </div>
       <div>
         <label style={styles.label}>GPU Memory Required: <strong>{form.memory_required} GB</strong></label>
-        <input style={styles.range} type="range" name="memory_required" min={1} max={48} step={1} value={form.memory_required} onChange={handleChange} />
+        <input style={styles.range} type="range" name="memory_required" min={1} max={24} step={1} value={form.memory_required} onChange={handleChange} />
       </div>
       <div>
-        <label style={styles.label}>Compute Intensity: <strong>{Math.round(form.compute_intensity * 100)}%</strong></label>
-        <input style={styles.range} type="range" name="compute_intensity" min={0} max={1} step={0.1} value={form.compute_intensity} onChange={handleChange} />
+        <label style={styles.label}>Compute Intensity: <strong>{form.compute_intensity}%</strong></label>
+        <input style={styles.range} type="range" name="compute_intensity" min={1} max={100} step={1} value={form.compute_intensity} onChange={handleChange} />
       </div>
       <div>
         <label style={styles.label}>Priority</label>

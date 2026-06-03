@@ -50,12 +50,14 @@ services:
       dockerfile: backend/Dockerfile
     container_name: smartgpu-worker1
     working_dir: /app/backend
-    command: celery -A celery_app.celery worker --loglevel=info
+    user: "1000:1000"
+    command: celery -A celery_app.celery worker --concurrency=1 --loglevel=info
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
       MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
       COLD_START_THRESHOLD: "1"
+      MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
       db:
         condition: service_healthy
@@ -70,12 +72,14 @@ services:
       dockerfile: backend/Dockerfile
     container_name: smartgpu-worker2
     working_dir: /app/backend
-    command: celery -A celery_app.celery worker --loglevel=info
+    user: "1000:1000"
+    command: celery -A celery_app.celery worker --concurrency=1 --loglevel=info
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
       MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
       COLD_START_THRESHOLD: "1"
+      MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
       db:
         condition: service_healthy
@@ -90,12 +94,14 @@ services:
       dockerfile: backend/Dockerfile
     container_name: smartgpu-worker3
     working_dir: /app/backend
-    command: celery -A celery_app.celery worker --loglevel=info
+    user: "1000:1000"
+    command: celery -A celery_app.celery worker --concurrency=1 --loglevel=info
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
       MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
       COLD_START_THRESHOLD: "1"
+      MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
       db:
         condition: service_healthy
@@ -110,12 +116,14 @@ services:
       dockerfile: backend/Dockerfile
     container_name: smartgpu-worker4
     working_dir: /app/backend
-    command: celery -A celery_app.celery worker --loglevel=info
+    user: "1000:1000"
+    command: celery -A celery_app.celery worker --concurrency=1 --loglevel=info
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
       MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
       COLD_START_THRESHOLD: "1"
+      MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
       db:
         condition: service_healthy
@@ -134,6 +142,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
+      MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
       redis:
         condition: service_started

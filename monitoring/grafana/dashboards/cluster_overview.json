@@ -1,0 +1,80 @@
+{
+  "title": "SmartGPU Cluster Overview",
+  "uid": "cluster-overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Jobs Processed",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_jobs_processed_total" }]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Running Jobs",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_jobs_running_total" }]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Queued Jobs",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_jobs_queued_total" }]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Queue Depth",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_gpu_queue_depth", "legendFormat": "{{gpu}}" }]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "GPU Utilization (%)",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_gpu_utilization", "legendFormat": "{{gpu}}" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "GPU Temperature (°C)",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_gpu_temperature", "legendFormat": "{{gpu}}" }],
+      "fieldConfig": { "defaults": { "unit": "celsius" } }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "AI Decisions",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_ai_decisions_total" }]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Cost Savings ($)",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "smartgpu_cost_savings_usd" }],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    }
+  ]
+}

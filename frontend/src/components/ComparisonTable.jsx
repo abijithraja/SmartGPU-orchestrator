@@ -14,9 +14,10 @@ export default function ComparisonTable({ jobs }) {
   return (
     <div>
       <div style={styles.summary}>
-        <span>Total jobs: <strong>{jobs.length}</strong></span>
+        <span>Total jobs: <strong style={{color: '#fff'}}>{jobs.length}</strong></span>
         <span>Cumulative savings: <strong style={{ color: '#10b981' }}>${totalSavedUsd.toFixed(4)}</strong></span>
       </div>
+      <style>{`.glass-table-row:hover { background: rgba(59,130,246,0.08) !important; }`}</style>
       <div style={styles.tableWrapper}>
         <table style={styles.table}>
           <thead>
@@ -31,7 +32,7 @@ export default function ComparisonTable({ jobs }) {
               const saved = (job.baseline_cost || 0) - (job.actual_cost || 0)
               const pct = job.baseline_cost ? ((saved / job.baseline_cost) * 100).toFixed(0) : 0
               return (
-                <tr key={job.job_id} style={styles.tr}>
+                <tr key={job.job_id} className="glass-table-row" style={styles.tr}>
                   <td style={styles.td}><span style={styles.mono}>{job.job_id?.slice(0, 8)}...</span></td>
                   <td style={styles.td}>{job.model_name}</td>
                   <td style={styles.td}><span style={{ color: '#818cf8' }}>{job.assigned_gpu || '--'}</span></td>
@@ -61,11 +62,11 @@ export default function ComparisonTable({ jobs }) {
 }
 
 const styles = {
-  summary: { display: 'flex', gap: 24, fontSize: 13, color: '#94a3b8', marginBottom: 12 },
-  tableWrapper: { overflowX: 'auto' },
+  summary: { display: 'flex', gap: 24, fontSize: 13, color: '#888888', marginBottom: 12 },
+  tableWrapper: { overflowX: 'auto', background: "rgba(17,17,17,0.75)", borderRadius: "16px", overflow: "hidden" },
   table: { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
-  th: { textAlign: 'left', padding: '8px 12px', color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #334155', whiteSpace: 'nowrap' },
-  tr: { borderBottom: '1px solid #1e293b' },
+  th: { textAlign: 'left', padding: '12px', color: '#888888', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap' },
+  tr: { borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s ease' },
   td: { padding: '10px 12px', color: '#cbd5e1', verticalAlign: 'middle' },
   mono: { fontFamily: 'monospace', color: '#64748b' },
 }
