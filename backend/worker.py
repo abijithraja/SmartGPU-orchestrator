@@ -222,12 +222,12 @@ def process_job(job_id: str):
         # 4. Repeated Assignment Penalty (Fix #2)
         recent_jobs = db.query(Job).filter(Job.assigned_gpu_id.isnot(None)).order_by(Job.created_at.desc()).limit(10).all()
         recent_assignment_count = sum(1 for j in recent_jobs if j.assigned_gpu_id == selected_gpu["id"])
-        reward -= (recent_assignment_count * 5)
+        reward -= min(recent_assignment_count * 0.1, 0.5)
 
         # 5. Load Balance Bonus (Fix #4)
         import numpy as np
         std_dev = np.std([g["utilization"] for g in gpu_states])
-        reward -= float(std_dev)
+        reward -= (float(std_dev) / 100.0)
 
         experience.reward = round(
             reward,

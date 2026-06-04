@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+# pyrefly: ignore [missing-import]
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST  # type: ignore
 
 import time
 from sqlalchemy.exc import OperationalError
@@ -17,6 +18,8 @@ from services.metrics_service import (
     get_jobs_processed,
     get_jobs_running,
     get_jobs_queued,
+    get_ai_decisions,
+    get_cost_savings,
 )
 
 # Wait for PostgreSQL before creating tables
@@ -86,15 +89,17 @@ def metrics():
 
     try:
         processed = get_jobs_processed(db)
-
         running = get_jobs_running(db)
-
         queued = get_jobs_queued(db)
+        ai_decisions = get_ai_decisions(db)
+        cost_savings = get_cost_savings(db)
 
         update_jobs_metrics(
             processed=processed,
             running=running,
             queued=queued,
+            ai_decisions=ai_decisions,
+            cost_savings=cost_savings,
         )
 
     finally:

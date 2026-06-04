@@ -3,355 +3,439 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartGPU — Final Complete Flow</title>
+<title>SmartGPU — System Architecture Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f5f4ef;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #050505;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 1rem;
+    padding: 32px 24px;
+    color: #ffffff;
   }
+
+  .header { text-align: center; margin-bottom: 24px; }
 
   h1 {
-    font-size: 1.4rem;
-    font-weight: 500;
-    color: #1a1a18;
-    margin-bottom: 0.4rem;
-    letter-spacing: -0.02em;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
   }
 
-  p.sub {
-    font-size: 0.85rem;
-    color: #6b6a64;
-    margin-bottom: 2rem;
-  }
+  p.sub { font-size: 15px; color: #9ca3af; }
 
   .card {
-    background: #fff;
-    border: 0.5px solid rgba(0,0,0,0.12);
+    background: #0b0b0b;
+    border: 1px solid #1f1f1f;
     border-radius: 16px;
-    padding: 2rem;
-    max-width: 760px;
+    padding: 28px 32px;
+    max-width: 860px;
     width: 100%;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
 
-  svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-  svg .th  { font-size: 14px; font-weight: 500; fill: inherit; }
-  svg .ts  { font-size: 12px; font-weight: 400; fill: inherit; }
+  /* SVG typography — sized for TV viewing */
+  svg text { font-family: 'Inter', sans-serif; }
+  svg .th  { font-size: 15px; font-weight: 600; fill: inherit; }
+  svg .ts  { font-size: 12.5px; font-weight: 400; fill: inherit; }
+  svg .lbl { font-size: 12px; font-weight: 500; }
 
-  /* color ramps */
-  svg .c-purple rect, svg .c-purple circle, svg .c-purple ellipse { fill: #EEEDFE; stroke: #534AB7; }
-  svg .c-purple text { fill: #3C3489; }
-  svg .c-teal   rect, svg .c-teal   circle, svg .c-teal   ellipse { fill: #E1F5EE; stroke: #0F6E56; }
-  svg .c-teal   text { fill: #085041; }
-  svg .c-amber  rect, svg .c-amber  circle, svg .c-amber  ellipse { fill: #FAEEDA; stroke: #854F0B; }
-  svg .c-amber  text { fill: #633806; }
-  svg .c-blue   rect, svg .c-blue   circle, svg .c-blue   ellipse { fill: #E6F1FB; stroke: #185FA5; }
-  svg .c-blue   text { fill: #0C447C; }
-  svg .c-green  rect, svg .c-green  circle, svg .c-green  ellipse { fill: #EAF3DE; stroke: #3B6D11; }
-  svg .c-green  text { fill: #27500A; }
-  svg .c-red    rect, svg .c-red    circle, svg .c-red    ellipse { fill: #FCEBEB; stroke: #A32D2D; }
-  svg .c-red    text { fill: #791F1F; }
-  svg .c-coral  rect, svg .c-coral  circle, svg .c-coral  ellipse { fill: #FAECE7; stroke: #993C1D; }
-  svg .c-coral  text { fill: #712B13; }
-  svg .c-gray   rect, svg .c-gray   circle, svg .c-gray   ellipse { fill: #F1EFE8; stroke: #5F5E5A; }
-  svg .c-gray   text { fill: #444441; }
-  svg .box      { fill: #F1EFE8; stroke: rgba(0,0,0,0.18); }
+  /* Dark color scheme matching frontend UI variables */
+  svg .c-purple rect { fill: #110d1f; stroke: #7c3aed; stroke-width: 1; }
+  svg .c-purple text { fill: #ffffff; }
+  svg .c-teal   rect { fill: #0a1f1a; stroke: #14b8a6; stroke-width: 1; }
+  svg .c-teal   text { fill: #ffffff; }
+  svg .c-amber  rect { fill: #1f1505; stroke: #f59e0b; stroke-width: 1; }
+  svg .c-amber  text { fill: #ffffff; }
+  svg .c-blue   rect { fill: #071529; stroke: #3b82f6; stroke-width: 1; }
+  svg .c-blue   text { fill: #ffffff; }
+  svg .c-green  rect { fill: #051a0d; stroke: #10b981; stroke-width: 1; }
+  svg .c-green  text { fill: #ffffff; }
+  svg .c-red    rect { fill: #240a0a; stroke: #ef4444; stroke-width: 1; }
+  svg .c-red    text { fill: #ffffff; }
+  svg .c-coral  rect { fill: #1f1205; stroke: #ea580c; stroke-width: 1; }
+  svg .c-coral  text { fill: #ffffff; }
+  svg .c-gray   rect { fill: #111111; stroke: #333333; stroke-width: 1; }
+  svg .c-gray   text { fill: #9ca3af; }
 
-  svg .arr { stroke: #888780; stroke-width: 1.5; fill: none; }
-  svg .node { cursor: pointer; }
-  svg .node:hover { opacity: 0.82; }
+  svg .box  { fill: #0a0a0a; stroke: #1f1f1f; stroke-width: 1; }
+  svg .arr  { stroke: #333333; stroke-width: 1.5; fill: none; }
 
+  /* Legend */
   .legend-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 20px;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 0.5px solid rgba(0,0,0,0.1);
-    font-size: 12px;
-    color: #444;
+    gap: 8px 20px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #1f1f1f;
+    font-size: 13px;
+    color: #9ca3af;
   }
   .legend-item { display: flex; align-items: center; gap: 6px; }
-  .legend-dot  { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
-  .ld-purple { background: #EEEDFE; border: 1.5px solid #534AB7; }
-  .ld-teal   { background: #E1F5EE; border: 1.5px solid #0F6E56; }
-  .ld-amber  { background: #FAEEDA; border: 1.5px solid #854F0B; }
-  .ld-blue   { background: #E6F1FB; border: 1.5px solid #185FA5; }
-  .ld-green  { background: #EAF3DE; border: 1.5px solid #3B6D11; }
-  .ld-red    { background: #FCEBEB; border: 1.5px solid #A32D2D; }
-  .ld-coral  { background: #FAECE7; border: 1.5px solid #993C1D; }
-  .ld-gray   { background: #F1EFE8; border: 1.5px solid #5F5E5A; }
+  .legend-dot  { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .ld-purple { background: #110d1f; border: 1.5px solid #7c3aed; }
+  .ld-teal   { background: #0a1f1a; border: 1.5px solid #14b8a6; }
+  .ld-amber  { background: #1f1505; border: 1.5px solid #f59e0b; }
+  .ld-blue   { background: #071529; border: 1.5px solid #3b82f6; }
+  .ld-green  { background: #051a0d; border: 1.5px solid #10b981; }
+  .ld-red    { background: #240a0a; border: 1.5px solid #ef4444; }
+  .ld-coral  { background: #1f1205; border: 1.5px solid #ea580c; }
+  .ld-gray   { background: #111111; border: 1.5px solid #333333; }
+
+  /* Future section */
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+  .section-sub { font-size: 14px; color: #9ca3af; margin-bottom: 20px; }
+
+  .future-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 640px) { .future-grid { grid-template-columns: 1fr; } }
+
+  .future-card {
+    background: #0b0b0b;
+    border: 1px solid #1f1f1f;
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .future-card .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .tag-rl    { background: #1f1505; color: #f59e0b; }
+  .tag-infra { background: #071529; color: #3b82f6; }
+  .tag-cost  { background: #051a0d; color: #10b981; }
+  .tag-safe  { background: #240a0a; color: #ef4444; }
+  .tag-ui    { background: #110d1f; color: #7c3aed; }
+
+  .future-card h4 { font-size: 15px; font-weight: 600; color: #ffffff; margin-bottom: 5px; }
+  .future-card p  { font-size: 13px; color: #9ca3af; line-height: 1.5; }
+  .future-card .why {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #7a7a7a;
+    border-left: 2px solid #1f1f1f;
+    padding-left: 10px;
+  }
 </style>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+</script>
 </head>
 <body>
 
-<h1>SmartGPU Orchestrator</h1>
-<p class="sub">Complete system flow — start to end</p>
+<div class="header">
+  <h1>SMARTGPU ORCHESTRATOR</h1>
+  <p class="sub">System Architecture Flow — AI-Driven GPU Scheduling</p>
+</div>
 
+<!-- ================================================================ -->
+<!--  MAIN FLOW                                                       -->
+<!-- ================================================================ -->
 <div class="card">
-<svg width="100%" viewBox="0 0 680 2040" xmlns="http://www.w3.org/2000/svg">
+<svg width="100%" viewBox="0 0 720 1940" xmlns="http://www.w3.org/2000/svg">
 <defs>
-<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-  <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</marker>
+  <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#3f3f46" stroke-width="1.5" stroke-linecap="round"/></marker>
+  <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round"/></marker>
+  <marker id="aa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/></marker>
 </defs>
 
+<!-- row spacing = 54px between blocks, block height = 48px -->
+
 <!-- START -->
-<g class="c-gray">
-  <rect x="255" y="24" width="170" height="38" rx="19" stroke-width="0.5"/>
-  <text class="th" x="340" y="43" text-anchor="middle" dominant-baseline="central">Start</text>
-</g>
-<line x1="340" y1="62" x2="340" y2="90" class="arr" marker-end="url(#arrow)"/>
+<g class="c-gray"><rect x="270" y="14" width="180" height="34" rx="17"/><text class="th" x="360" y="31" text-anchor="middle" dominant-baseline="central">Start</text></g>
+<line x1="360" y1="48" x2="360" y2="68" class="arr" marker-end="url(#a)"/>
 
-<!-- 1. USER SUBMITS -->
-<g class="node c-purple">
-  <rect x="185" y="90" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="110" text-anchor="middle" dominant-baseline="central">User submits job</text>
-  <text class="ts" x="340" y="128" text-anchor="middle" dominant-baseline="central">Web UI · CLI · REST API</text>
-</g>
-<line x1="340" y1="142" x2="340" y2="170" class="arr" marker-end="url(#arrow)"/>
+<!-- 1 -->
+<g class="c-purple"><rect x="185" y="68" width="350" height="48" rx="8"/><text class="th" x="360" y="86" text-anchor="middle" dominant-baseline="central">User submits job</text><text class="ts" x="360" y="104" text-anchor="middle" dominant-baseline="central">React Dashboard · POST /jobs/</text></g>
+<line x1="360" y1="116" x2="360" y2="136" class="arr" marker-end="url(#a)"/>
 
-<!-- 2. FASTAPI -->
-<g class="node c-purple">
-  <rect x="185" y="170" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="190" text-anchor="middle" dominant-baseline="central">FastAPI backend</text>
-  <text class="ts" x="340" y="208" text-anchor="middle" dominant-baseline="central">Auth · validate · assign job ID</text>
-</g>
-<line x1="340" y1="222" x2="340" y2="250" class="arr" marker-end="url(#arrow)"/>
+<!-- 2 -->
+<g class="c-purple"><rect x="185" y="136" width="350" height="48" rx="8"/><text class="th" x="360" y="154" text-anchor="middle" dominant-baseline="central">FastAPI validates + assigns UUID</text><text class="ts" x="360" y="172" text-anchor="middle" dominant-baseline="central">Pydantic schema · status = queued · PostgreSQL</text></g>
+<line x1="360" y1="184" x2="360" y2="204" class="arr" marker-end="url(#a)"/>
 
-<!-- 3. REDIS QUEUE -->
-<g class="node c-purple">
-  <rect x="185" y="250" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="270" text-anchor="middle" dominant-baseline="central">Redis job queue</text>
-  <text class="ts" x="340" y="288" text-anchor="middle" dominant-baseline="central">PostgreSQL: status = queued</text>
-</g>
-<line x1="340" y1="302" x2="340" y2="330" class="arr" marker-end="url(#arrow)"/>
+<!-- 3 -->
+<g class="c-purple"><rect x="185" y="204" width="350" height="48" rx="8"/><text class="th" x="360" y="222" text-anchor="middle" dominant-baseline="central">Enqueue via Redis + Celery</text><text class="ts" x="360" y="240" text-anchor="middle" dominant-baseline="central">process_job.delay() dispatched to worker pool</text></g>
+<line x1="360" y1="252" x2="360" y2="272" class="arr" marker-end="url(#a)"/>
 
 <!-- DIVIDER -->
-<rect x="80" y="328" width="520" height="22" rx="4" class="box" stroke-width="0.5"/>
-<text class="ts" x="340" y="339" text-anchor="middle" dominant-baseline="central" style="fill:#5F5E5A">AI engine picks up job from queue</text>
-<line x1="340" y1="350" x2="340" y2="378" class="arr" marker-end="url(#arrow)"/>
+<rect x="100" y="272" width="520" height="22" rx="4" class="box"/><text class="ts" x="360" y="283" text-anchor="middle" dominant-baseline="central" style="fill:#71717a">Celery Worker (1 of 4) picks up job</text>
+<line x1="360" y1="294" x2="360" y2="314" class="arr" marker-end="url(#a)"/>
 
-<!-- 4. COLD START CHECK -->
-<g class="node c-gray">
-  <rect x="200" y="378" width="280" height="44" rx="22" stroke-width="0.5"/>
-  <text class="th" x="340" y="400" text-anchor="middle" dominant-baseline="central">Experience rows >= 500?</text>
-</g>
+<!-- 4 COLD START -->
+<g class="c-gray"><rect x="215" y="314" width="290" height="40" rx="20"/><text class="th" x="360" y="334" text-anchor="middle" dominant-baseline="central">Experience ≥ threshold?</text></g>
 
-<!-- NO: round-robin -->
-<path d="M200 400 L108 400 L108 466" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<text class="ts" x="152" y="394" text-anchor="middle" style="fill:#5F5E5A">no</text>
-<g class="node c-coral">
-  <rect x="48" y="466" width="120" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="108" y="486" text-anchor="middle" dominant-baseline="central">Round-robin</text>
-  <text class="ts" x="108" y="504" text-anchor="middle" dominant-baseline="central">fallback, log row</text>
-</g>
+<!-- NO -->
+<path d="M215 334 L120 334 L120 384" fill="none" class="arr" marker-end="url(#a)"/>
+<text class="lbl" x="165" y="328" text-anchor="middle" style="fill:#71717a">no</text>
+<g class="c-coral"><rect x="62" y="384" width="116" height="44" rx="8"/><text class="th" x="120" y="400" text-anchor="middle" dominant-baseline="central">Round-robin</text><text class="ts" x="120" y="416" text-anchor="middle" dominant-baseline="central">max free mem</text></g>
 
-<!-- YES: collect metrics -->
-<path d="M480 400 L572 400 L572 466" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<text class="ts" x="528" y="394" text-anchor="middle" style="fill:#5F5E5A">yes</text>
-<g class="node c-teal">
-  <rect x="512" y="466" width="120" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="572" y="486" text-anchor="middle" dominant-baseline="central">Collect GPU</text>
-  <text class="ts" x="572" y="504" text-anchor="middle" dominant-baseline="central">metrics · Prometheus</text>
-</g>
+<!-- YES -->
+<path d="M505 334 L600 334 L600 384" fill="none" class="arr" marker-end="url(#a)"/>
+<text class="lbl" x="555" y="328" text-anchor="middle" style="fill:#71717a">yes</text>
+<g class="c-teal"><rect x="542" y="384" width="116" height="44" rx="8"/><text class="th" x="600" y="400" text-anchor="middle" dominant-baseline="central">GPU metrics</text><text class="ts" x="600" y="416" text-anchor="middle" dominant-baseline="central">simulator / DCGM</text></g>
 
-<!-- Both merge to state vector -->
-<path d="M108 518 L108 556 L185 556" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<path d="M572 518 L572 556 L495 556" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
+<!-- Merge -->
+<path d="M120 428 L120 456 L185 456" fill="none" class="arr" marker-end="url(#a)"/>
+<path d="M600 428 L600 456 L535 456" fill="none" class="arr" marker-end="url(#a)"/>
 
-<!-- 5. BUILD STATE VECTOR -->
-<g class="node c-teal">
-  <rect x="185" y="534" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="554" text-anchor="middle" dominant-baseline="central">Build state vector</text>
-  <text class="ts" x="340" y="572" text-anchor="middle" dominant-baseline="central">GPU metrics + job requirements</text>
-</g>
-<line x1="340" y1="586" x2="340" y2="614" class="arr" marker-end="url(#arrow)"/>
+<!-- 5 OBS -->
+<g class="c-teal"><rect x="185" y="440" width="350" height="48" rx="8"/><text class="th" x="360" y="458" text-anchor="middle" dominant-baseline="central">Build 24-dim observation vector</text><text class="ts" x="360" y="476" text-anchor="middle" dominant-baseline="central">4 GPUs × 6 features · np.clip(0, 1)</text></g>
+<line x1="360" y1="488" x2="360" y2="508" class="arr" marker-end="url(#a)"/>
 
-<!-- 6. RL AGENT -->
-<g class="node c-amber">
-  <rect x="165" y="614" width="350" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="634" text-anchor="middle" dominant-baseline="central">RL agent (PPO) scores all GPUs</text>
-  <text class="ts" x="340" y="652" text-anchor="middle" dominant-baseline="central">Output: confidence score per GPU</text>
-</g>
-<line x1="340" y1="666" x2="340" y2="694" class="arr" marker-end="url(#arrow)"/>
+<!-- 6 PPO -->
+<g class="c-amber"><rect x="175" y="508" width="370" height="48" rx="8"/><text class="th" x="360" y="526" text-anchor="middle" dominant-baseline="central">PPO RL Agent scores GPUs</text><text class="ts" x="360" y="544" text-anchor="middle" dominant-baseline="central">Stable-Baselines3 · action probabilities per GPU</text></g>
+<line x1="360" y1="556" x2="360" y2="576" class="arr" marker-end="url(#a)"/>
 
-<!-- 7. RULE GUARD -->
-<g class="node c-gray">
-  <rect x="145" y="694" width="390" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="714" text-anchor="middle" dominant-baseline="central">Rule guard filters candidates</text>
-  <text class="ts" x="340" y="732" text-anchor="middle" dominant-baseline="central">Reject: mem_req > free_mem or temp > 85°C</text>
-</g>
-<line x1="340" y1="746" x2="340" y2="774" class="arr" marker-end="url(#arrow)"/>
+<!-- 7 SCORE ADJ -->
+<g class="c-amber"><rect x="175" y="576" width="370" height="48" rx="8"/><text class="th" x="360" y="594" text-anchor="middle" dominant-baseline="central">Score-level bias corrections</text><text class="ts" x="360" y="612" text-anchor="middle" dominant-baseline="central">Queue (−0.20) · Utilization (−0.80) · Temp (−0.40)</text></g>
+<line x1="360" y1="624" x2="360" y2="644" class="arr" marker-end="url(#a)"/>
 
-<!-- 8. VALID GPU? -->
-<g class="node c-gray">
-  <rect x="215" y="774" width="250" height="44" rx="22" stroke-width="0.5"/>
-  <text class="th" x="340" y="796" text-anchor="middle" dominant-baseline="central">Valid GPU remaining?</text>
-</g>
+<!-- 8 RULE GUARD -->
+<g class="c-gray"><rect x="155" y="644" width="410" height="48" rx="8"/><text class="th" x="360" y="662" text-anchor="middle" dominant-baseline="central">Rule Guard — hard safety filter</text><text class="ts" x="360" y="680" text-anchor="middle" dominant-baseline="central">Reject: OOM · temp &gt; 85°C · util &gt; 95% · queue ≥ 2</text></g>
+<line x1="360" y1="692" x2="360" y2="712" class="arr" marker-end="url(#a)"/>
+
+<!-- 9 VALID? -->
+<g class="c-gray"><rect x="230" y="712" width="260" height="40" rx="20"/><text class="th" x="360" y="732" text-anchor="middle" dominant-baseline="central">Valid GPU remaining?</text></g>
 
 <!-- NO: hold -->
-<path d="M215 796 L108 796 L108 848" fill="none" stroke="#A32D2D" stroke-width="0.5" marker-end="url(#arrow)"/>
-<text class="ts" x="158" y="790" text-anchor="middle" style="fill:#A32D2D">no</text>
-<g class="node c-red">
-  <rect x="48" y="848" width="120" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="108" y="868" text-anchor="middle" dominant-baseline="central">Hold in queue</text>
-  <text class="ts" x="108" y="886" text-anchor="middle" dominant-baseline="central">retry in 60s</text>
-</g>
-<path d="M48 874 L30 874 L30 720 L145 720" fill="none" stroke="#A32D2D" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<path d="M230 732 L120 732 L120 778" fill="none" stroke="#dc2626" stroke-width="1" marker-end="url(#ar)"/>
+<text class="lbl" x="173" y="726" text-anchor="middle" style="fill:#dc2626">no</text>
+<g class="c-red"><rect x="62" y="778" width="116" height="44" rx="8"/><text class="th" x="120" y="794" text-anchor="middle" dominant-baseline="central">Hold in queue</text><text class="ts" x="120" y="810" text-anchor="middle" dominant-baseline="central">retry later</text></g>
+<path d="M62 800 L40 800 L40 668 L155 668" fill="none" stroke="#dc2626" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/>
 
-<!-- YES: top valid GPU -->
-<path d="M465 796 L572 796 L572 848" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<text class="ts" x="520" y="790" text-anchor="middle" style="fill:#5F5E5A">yes</text>
-<g class="node c-amber">
-  <rect x="512" y="848" width="120" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="572" y="868" text-anchor="middle" dominant-baseline="central">Top valid GPU</text>
-  <text class="ts" x="572" y="886" text-anchor="middle" dominant-baseline="central">selected</text>
-</g>
+<!-- YES -->
+<path d="M490 732 L600 732 L600 778" fill="none" class="arr" marker-end="url(#a)"/>
+<text class="lbl" x="545" y="726" text-anchor="middle" style="fill:#71717a">yes</text>
+<g class="c-amber"><rect x="542" y="778" width="116" height="44" rx="8"/><text class="th" x="600" y="794" text-anchor="middle" dominant-baseline="central">Top GPU</text><text class="ts" x="600" y="810" text-anchor="middle" dominant-baseline="central">selected</text></g>
+<path d="M600 822 L600 848 L535 848" fill="none" class="arr" marker-end="url(#a)"/>
 
-<!-- Both merge to explainability -->
-<path d="M572 900 L572 936 L495 936" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<path d="M108 900 L108 936 L185 936" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
+<!-- 10 HYBRID -->
+<g class="c-coral"><rect x="185" y="832" width="350" height="48" rx="8"/><text class="th" x="360" y="850" text-anchor="middle" dominant-baseline="central">Hybrid Override Check</text><text class="ts" x="360" y="868" text-anchor="middle" dominant-baseline="central">If util &gt; 80% → force least-loaded GPU</text></g>
+<line x1="360" y1="880" x2="360" y2="900" class="arr" marker-end="url(#a)"/>
 
-<!-- 9. EXPLAINABILITY -->
-<g class="node c-amber">
-  <rect x="185" y="914" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="934" text-anchor="middle" dominant-baseline="central">Explainability engine</text>
-  <text class="ts" x="340" y="952" text-anchor="middle" dominant-baseline="central">Why this GPU? Score breakdown</text>
-</g>
-<line x1="340" y1="966" x2="340" y2="994" class="arr" marker-end="url(#arrow)"/>
+<!-- 11 OOM -->
+<g class="c-gray"><rect x="230" y="900" width="260" height="40" rx="20"/><text class="th" x="360" y="920" text-anchor="middle" dominant-baseline="central">OOM check passed?</text></g>
+<path d="M230 920 L120 920 L120 966" fill="none" stroke="#dc2626" stroke-width="1" marker-end="url(#ar)"/>
+<text class="lbl" x="173" y="914" text-anchor="middle" style="fill:#dc2626">no</text>
+<g class="c-red"><rect x="52" y="966" width="136" height="44" rx="8"/><text class="th" x="120" y="982" text-anchor="middle" dominant-baseline="central">OOM Recovery</text><text class="ts" x="120" y="998" text-anchor="middle" dominant-baseline="central">reduce mem 20%</text></g>
+<line x1="360" y1="940" x2="360" y2="960" class="arr" marker-end="url(#a)"/>
 
-<!-- 10. COST ESTIMATE -->
-<g class="node c-amber">
-  <rect x="185" y="994" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1014" text-anchor="middle" dominant-baseline="central">Cost estimate computed</text>
-  <text class="ts" x="340" y="1032" text-anchor="middle" dominant-baseline="central">Azure rate × predicted duration</text>
-</g>
-<line x1="340" y1="1046" x2="340" y2="1074" class="arr" marker-end="url(#arrow)"/>
+<!-- 12 MIGRATION -->
+<g class="c-gray"><rect x="230" y="960" width="260" height="40" rx="20"/><text class="th" x="360" y="980" text-anchor="middle" dominant-baseline="central">Migration needed?</text></g>
+<path d="M490 980 L600 980 L600 1020" fill="none" stroke="#dc2626" stroke-width="1" marker-end="url(#ar)"/>
+<text class="lbl" x="545" y="974" text-anchor="middle" style="fill:#dc2626">yes</text>
+<g class="c-red"><rect x="542" y="1020" width="116" height="44" rx="8"/><text class="th" x="600" y="1036" text-anchor="middle" dominant-baseline="central">Migrate job</text><text class="ts" x="600" y="1052" text-anchor="middle" dominant-baseline="central">re-queue</text></g>
+<line x1="360" y1="1000" x2="360" y2="1020" class="arr" marker-end="url(#a)"/>
 
-<!-- 11. LOG EXPERIENCE -->
-<g class="node c-teal">
-  <rect x="185" y="1074" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1094" text-anchor="middle" dominant-baseline="central">Log experience row</text>
-  <text class="ts" x="340" y="1112" text-anchor="middle" dominant-baseline="central">State · action · baseline cost</text>
-</g>
-<line x1="340" y1="1126" x2="340" y2="1154" class="arr" marker-end="url(#arrow)"/>
+<!-- 13 ASSIGN -->
+<g class="c-teal"><rect x="185" y="1020" width="350" height="48" rx="8"/><text class="th" x="360" y="1038" text-anchor="middle" dominant-baseline="central">Assign job to GPU</text><text class="ts" x="360" y="1056" text-anchor="middle" dominant-baseline="central">Update memory + queue · generate explanation</text></g>
+<line x1="360" y1="1068" x2="360" y2="1088" class="arr" marker-end="url(#a)"/>
+
+<!-- 14 COST -->
+<g class="c-amber"><rect x="185" y="1088" width="350" height="48" rx="8"/><text class="th" x="360" y="1106" text-anchor="middle" dominant-baseline="central">Cost estimation</text><text class="ts" x="360" y="1124" text-anchor="middle" dominant-baseline="central">Azure rate × duration · AI vs baseline (~22% faster)</text></g>
+<line x1="360" y1="1136" x2="360" y2="1156" class="arr" marker-end="url(#a)"/>
+
+<!-- 15 EXPLAIN -->
+<g class="c-amber"><rect x="185" y="1156" width="350" height="48" rx="8"/><text class="th" x="360" y="1174" text-anchor="middle" dominant-baseline="central">Explainability engine</text><text class="ts" x="360" y="1192" text-anchor="middle" dominant-baseline="central">Human-readable reason · score breakdown · rejections</text></g>
+<line x1="360" y1="1204" x2="360" y2="1224" class="arr" marker-end="url(#a)"/>
+
+<!-- 16 LOG -->
+<g class="c-teal"><rect x="185" y="1224" width="350" height="48" rx="8"/><text class="th" x="360" y="1242" text-anchor="middle" dominant-baseline="central">Store RLExperience row</text><text class="ts" x="360" y="1260" text-anchor="middle" dominant-baseline="central">State · action · multi-objective reward</text></g>
+<line x1="360" y1="1272" x2="360" y2="1292" class="arr" marker-end="url(#a)"/>
 
 <!-- DIVIDER -->
-<rect x="80" y="1152" width="520" height="22" rx="4" class="box" stroke-width="0.5"/>
-<text class="ts" x="340" y="1163" text-anchor="middle" dominant-baseline="central" style="fill:#5F5E5A">Kubernetes schedules pod onto selected GPU node</text>
-<line x1="340" y1="1174" x2="340" y2="1202" class="arr" marker-end="url(#arrow)"/>
+<rect x="100" y="1292" width="520" height="22" rx="4" class="box"/><text class="ts" x="360" y="1303" text-anchor="middle" dominant-baseline="central" style="fill:#71717a">Docker container executes on selected GPU node</text>
+<line x1="360" y1="1314" x2="360" y2="1334" class="arr" marker-end="url(#a)"/>
 
-<!-- 12. DOCKER + K8S -->
-<g class="node c-blue">
-  <rect x="185" y="1202" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1222" text-anchor="middle" dominant-baseline="central">Job runs in Docker container</text>
-  <text class="ts" x="340" y="1240" text-anchor="middle" dominant-baseline="central">Resource limits enforced by K8s</text>
-</g>
-<line x1="340" y1="1254" x2="340" y2="1282" class="arr" marker-end="url(#arrow)"/>
+<!-- 17 RUN -->
+<g class="c-blue"><rect x="185" y="1334" width="350" height="48" rx="8"/><text class="th" x="360" y="1352" text-anchor="middle" dominant-baseline="central">Job runs with live progress</text><text class="ts" x="360" y="1370" text-anchor="middle" dominant-baseline="central">Progress 0→100% · checkpoint every tick · K8s limits</text></g>
+<line x1="360" y1="1382" x2="360" y2="1402" class="arr" marker-end="url(#a)"/>
 
-<!-- 13. HEALTH CHECK -->
-<g class="node c-gray">
-  <rect x="185" y="1282" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1302" text-anchor="middle" dominant-baseline="central">Health check every 30s</text>
-  <text class="ts" x="340" y="1320" text-anchor="middle" dominant-baseline="central">Celery beat · GPU + pod status</text>
-</g>
-<line x1="340" y1="1334" x2="340" y2="1362" class="arr" marker-end="url(#arrow)"/>
+<!-- 18 HEALTH -->
+<g class="c-gray"><rect x="185" y="1402" width="350" height="48" rx="8"/><text class="th" x="360" y="1420" text-anchor="middle" dominant-baseline="central">Recovery Monitor (every 30s)</text><text class="ts" x="360" y="1438" text-anchor="middle" dominant-baseline="central">Celery Beat · detect stuck jobs &gt; 30 min</text></g>
+<line x1="360" y1="1450" x2="360" y2="1470" class="arr" marker-end="url(#a)"/>
 
-<!-- 14. GPU HEALTHY? -->
-<g class="node c-gray">
-  <rect x="215" y="1362" width="250" height="44" rx="22" stroke-width="0.5"/>
-  <text class="th" x="340" y="1384" text-anchor="middle" dominant-baseline="central">GPU still healthy?</text>
-</g>
+<!-- 19 HEALTHY? -->
+<g class="c-gray"><rect x="230" y="1470" width="260" height="40" rx="20"/><text class="th" x="360" y="1490" text-anchor="middle" dominant-baseline="central">GPU still healthy?</text></g>
 
-<!-- NO: failure recovery -->
-<path d="M215 1384 L108 1384 L108 1450" fill="none" stroke="#A32D2D" stroke-width="0.5" marker-end="url(#arrow)"/>
-<text class="ts" x="158" y="1378" text-anchor="middle" style="fill:#A32D2D">no</text>
-<g class="node c-red">
-  <rect x="48" y="1450" width="120" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="108" y="1470" text-anchor="middle" dominant-baseline="central">GPU failed</text>
-  <text class="ts" x="108" y="1488" text-anchor="middle" dominant-baseline="central">AI reschedules</text>
-</g>
-<path d="M48 1476 L22 1476 L22 720 L145 720" fill="none" stroke="#A32D2D" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
-<text class="ts" x="28" y="1095" text-anchor="start" style="fill:#A32D2D">retry</text>
-<text class="ts" x="28" y="1110" text-anchor="start" style="fill:#A32D2D">max 3</text>
+<!-- NO -->
+<path d="M230 1490 L120 1490 L120 1536" fill="none" stroke="#dc2626" stroke-width="1" marker-end="url(#ar)"/>
+<text class="lbl" x="173" y="1484" text-anchor="middle" style="fill:#dc2626">no</text>
+<g class="c-red"><rect x="52" y="1536" width="136" height="44" rx="8"/><text class="th" x="120" y="1552" text-anchor="middle" dominant-baseline="central">GPU failure</text><text class="ts" x="120" y="1568" text-anchor="middle" dominant-baseline="central">retry ≤ 3× + ckpt</text></g>
+<path d="M52 1558 L30 1558 L30 668 L155 668" fill="none" stroke="#dc2626" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+<text class="lbl" x="36" y="1100" text-anchor="start" style="fill:#dc2626">retry max 3</text>
 
-<!-- YES: prometheus -->
-<path d="M465 1384 L572 1384 L572 1450" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<text class="ts" x="520" y="1378" text-anchor="middle" style="fill:#5F5E5A">yes</text>
-<g class="node c-green">
-  <rect x="512" y="1450" width="120" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="572" y="1470" text-anchor="middle" dominant-baseline="central">Prometheus</text>
-  <text class="ts" x="572" y="1488" text-anchor="middle" dominant-baseline="central">live GPU metrics</text>
-</g>
+<!-- YES -->
+<path d="M490 1490 L600 1490 L600 1536" fill="none" class="arr" marker-end="url(#a)"/>
+<text class="lbl" x="545" y="1484" text-anchor="middle" style="fill:#71717a">yes</text>
+<g class="c-green"><rect x="542" y="1536" width="116" height="44" rx="8"/><text class="th" x="600" y="1552" text-anchor="middle" dominant-baseline="central">Prometheus</text><text class="ts" x="600" y="1568" text-anchor="middle" dominant-baseline="central">live metrics</text></g>
 
-<!-- Both merge to job completes -->
-<path d="M572 1502 L572 1540 L495 1540" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
-<path d="M108 1502 L108 1540 L185 1540" fill="none" stroke="#888780" stroke-width="0.5" marker-end="url(#arrow)"/>
+<!-- Merge -->
+<path d="M600 1580 L600 1606 L535 1606" fill="none" class="arr" marker-end="url(#a)"/>
+<path d="M120 1580 L120 1606 L185 1606" fill="none" class="arr" marker-end="url(#a)"/>
 
-<!-- 15. JOB COMPLETES -->
-<g class="node c-green">
-  <rect x="185" y="1518" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1538" text-anchor="middle" dominant-baseline="central">Job completes</text>
-  <text class="ts" x="340" y="1556" text-anchor="middle" dominant-baseline="central">Duration · actual cost · OOM flag</text>
-</g>
-<line x1="340" y1="1570" x2="340" y2="1598" class="arr" marker-end="url(#arrow)"/>
+<!-- 20 COMPLETE -->
+<g class="c-green"><rect x="185" y="1590" width="350" height="48" rx="8"/><text class="th" x="360" y="1608" text-anchor="middle" dominant-baseline="central">Job completes</text><text class="ts" x="360" y="1626" text-anchor="middle" dominant-baseline="central">Duration · actual cost · release GPU memory</text></g>
+<line x1="360" y1="1638" x2="360" y2="1658" class="arr" marker-end="url(#a)"/>
 
-<!-- 16. REWARD -->
-<g class="node c-green">
-  <rect x="165" y="1598" width="350" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1618" text-anchor="middle" dominant-baseline="central">Reward computed · row updated</text>
-  <text class="ts" x="340" y="1636" text-anchor="middle" dominant-baseline="central">Speedup vs baseline − OOM penalty</text>
-</g>
-<line x1="340" y1="1650" x2="340" y2="1678" class="arr" marker-end="url(#arrow)"/>
+<!-- 21 REWARD -->
+<g class="c-green"><rect x="175" y="1658" width="370" height="48" rx="8"/><text class="th" x="360" y="1676" text-anchor="middle" dominant-baseline="central">Multi-objective reward computed</text><text class="ts" x="360" y="1694" text-anchor="middle" dominant-baseline="central">savings − util − queue − temp − repeats − std_dev</text></g>
+<line x1="360" y1="1706" x2="360" y2="1726" class="arr" marker-end="url(#a)"/>
 
-<!-- 17. DASHBOARD -->
-<g class="node c-purple">
-  <rect x="185" y="1678" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1698" text-anchor="middle" dominant-baseline="central">Dashboard updates</text>
-  <text class="ts" x="340" y="1716" text-anchor="middle" dominant-baseline="central">Cost saved · AI decision · Grafana</text>
-</g>
-<line x1="340" y1="1730" x2="340" y2="1758" class="arr" marker-end="url(#arrow)"/>
+<!-- 22 DASHBOARD -->
+<g class="c-purple"><rect x="185" y="1726" width="350" height="48" rx="8"/><text class="th" x="360" y="1744" text-anchor="middle" dominant-baseline="central">Dashboard updates (2s polling)</text><text class="ts" x="360" y="1762" text-anchor="middle" dominant-baseline="central">Cost · confidence · GPU distribution · Grafana</text></g>
+<line x1="360" y1="1774" x2="360" y2="1794" class="arr" marker-end="url(#a)"/>
 
-<!-- 18. RETRAIN TRIGGER -->
-<g class="node c-amber">
-  <rect x="185" y="1758" width="310" height="52" rx="8" stroke-width="0.5"/>
-  <text class="th" x="340" y="1778" text-anchor="middle" dominant-baseline="central">Retrain trigger check</text>
-  <text class="ts" x="340" y="1796" text-anchor="middle" dominant-baseline="central">Every 500 new experience rows</text>
-</g>
+<!-- 23 RETRAIN -->
+<g class="c-amber"><rect x="185" y="1794" width="350" height="48" rx="8"/><text class="th" x="360" y="1812" text-anchor="middle" dominant-baseline="central">Auto-retrain check</text><text class="ts" x="360" y="1830" text-anchor="middle" dominant-baseline="central">Every 50 jobs → retrain PPO 100K steps</text></g>
 
-<!-- Retrain loop right -->
-<path d="M495 1784 L648 1784 L648 640 L515 640" fill="none" stroke="#BA7517" stroke-width="0.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
-<text class="ts" x="654" y="1200" text-anchor="start" style="fill:#BA7517">model</text>
-<text class="ts" x="654" y="1216" text-anchor="start" style="fill:#BA7517">improves</text>
+<!-- Retrain loop -->
+<path d="M535 1818 L680 1818 L680 530 L545 530" fill="none" stroke="#d97706" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#aa)"/>
+<text class="lbl" x="686" y="1170" text-anchor="start" style="fill:#d97706">model improves</text>
 
-<line x1="340" y1="1810" x2="340" y2="1960" class="arr" marker-end="url(#arrow)"/>
+<line x1="360" y1="1842" x2="360" y2="1880" class="arr" marker-end="url(#a)"/>
 
 <!-- END -->
-<g class="c-gray">
-  <rect x="255" y="1960" width="170" height="38" rx="19" stroke-width="0.5"/>
-  <text class="th" x="340" y="1979" text-anchor="middle" dominant-baseline="central">End / next job</text>
-</g>
+<g class="c-gray"><rect x="270" y="1880" width="180" height="34" rx="17"/><text class="th" x="360" y="1897" text-anchor="middle" dominant-baseline="central">End / next job</text></g>
 
 </svg>
 
 <div class="legend-row">
   <div class="legend-item"><span class="legend-dot ld-purple"></span>User / UI</div>
   <div class="legend-item"><span class="legend-dot ld-teal"></span>Data / logging</div>
-  <div class="legend-item"><span class="legend-dot ld-amber"></span>AI / decisions</div>
+  <div class="legend-item"><span class="legend-dot ld-amber"></span>AI / RL decisions</div>
   <div class="legend-item"><span class="legend-dot ld-blue"></span>Infrastructure</div>
   <div class="legend-item"><span class="legend-dot ld-green"></span>Monitoring</div>
   <div class="legend-item"><span class="legend-dot ld-red"></span>Recovery</div>
-  <div class="legend-item"><span class="legend-dot ld-coral"></span>Cold start</div>
+  <div class="legend-item"><span class="legend-dot ld-coral"></span>Hybrid override</div>
   <div class="legend-item"><span class="legend-dot ld-gray"></span>Guard / check</div>
 </div>
+</div>
+
+<!-- ================================================================ -->
+<!--  SYSTEM ARCHITECTURE                                             -->
+<!-- ================================================================ -->
+<div class="card" style="margin-top: 20px; display: flex; flex-direction: column; align-items: center;">
+  <h2 class="section-title" style="align-self: flex-start;">System Architecture</h2>
+  <p class="section-sub" style="align-self: flex-start;">High-level component diagram showing microservice interaction.</p>
+  
+  <div class="mermaid">
+    graph TD
+        %% Define styles
+        classDef client fill:#1e40af,stroke:#60a5fa,stroke-width:2px,color:#fff
+        classDef api fill:#065f46,stroke:#34d399,stroke-width:2px,color:#fff
+        classDef queue fill:#b45309,stroke:#fbbf24,stroke-width:2px,color:#fff
+        classDef worker fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff
+        classDef db fill:#0f172a,stroke:#64748b,stroke-width:2px,color:#fff
+        classDef ai fill:#be185d,stroke:#f472b6,stroke-width:2px,color:#fff
+
+        User[React / Vite Frontend]:::client --> API[FastAPI Backend]:::api
+        
+        API --> |Job Submit| DB[(PostgreSQL)]:::db
+        API --> |Task Event| Redis[(Redis Broker)]:::queue
+        
+        Redis --> Worker1[Celery Worker 1]:::worker
+        Redis --> Worker2[Celery Worker 2]:::worker
+        Redis --> WorkerN[Celery Worker 3/4]:::worker
+        
+        Worker1 --> Agent[PPO AI Agent]:::ai
+        Worker2 --> Agent
+        WorkerN --> Agent
+        
+        Agent --> |Action| Sim[GPU Cluster / Simulator]:::db
+        
+        Sim -.-> |Metrics| Prom[Prometheus]:::api
+        Prom -.-> Grafana[Grafana Dashboards]:::client
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!--  FUTURE IMPLEMENTATIONS                                          -->
+<!-- ================================================================ -->
+<div class="card" style="margin-top: 20px;">
+  <h2 class="section-title">Future Implementations</h2>
+  <p class="section-sub">Planned enhancements to evolve SmartGPU into a production-grade platform.</p>
+
+  <div class="future-grid">
+
+    <div class="future-card">
+      <span class="tag tag-rl">RL Engine</span>
+      <h4>Multi-Agent RL (MARL)</h4>
+      <p>Each GPU node gets its own local agent coordinated by a global scheduler — enables scaling beyond 16 GPUs.</p>
+      <div class="why"><strong>Why:</strong> Single-agent doesn't scale. MARL gives O(1) inference per node instead of O(n).</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-rl">RL Engine</span>
+      <h4>Transformer Policy Network</h4>
+      <p>Replace MLP with a Transformer that attends over variable-length GPU sequences — no fixed 4-GPU limit.</p>
+      <div class="why"><strong>Why:</strong> Current model is hardcoded to 24-dim. Transformer handles dynamic cluster sizes without retraining.</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-cost">Cost</span>
+      <h4>Spot Instance Support</h4>
+      <p>Integrate Azure Spot VM pricing — prefer spot for fault-tolerant jobs, reserve on-demand for critical workloads.</p>
+      <div class="why"><strong>Why:</strong> Spot instances are 60–90% cheaper. Checkpoint-resume is already built in.</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-infra">Infrastructure</span>
+      <h4>Priority-Aware Queuing</h4>
+      <p>High-priority jobs preempt lower-priority ones, which are checkpointed and re-queued automatically.</p>
+      <div class="why"><strong>Why:</strong> Current FIFO treats all jobs equally. Production workloads have SLAs.</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-infra">Infrastructure</span>
+      <h4>Real NVIDIA Telemetry</h4>
+      <p>Replace simulator with NVIDIA DCGM exporter via Prometheus GPU operator on Kubernetes.</p>
+      <div class="why"><strong>Why:</strong> Closes the sim-to-real gap — real PCIe errors, NVLink bottlenecks, ECC faults.</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-cost">Cost</span>
+      <h4>Predictive Autoscaling</h4>
+      <p>LSTM/Prophet forecasting on job arrival patterns to pre-scale the cluster before demand spikes.</p>
+      <div class="why"><strong>Why:</strong> Static 4-GPU cluster. Predictive scaling reduces queue wait by 40–60%.</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-safe">Safety</span>
+      <h4>ML Anomaly Detection</h4>
+      <p>Isolation forest on GPU telemetry to detect degradation before hardware failure occurs.</p>
+      <div class="why"><strong>Why:</strong> Rule Guard uses fixed thresholds. ML catches subtle patterns minutes before failure.</div>
+    </div>
+
+    <div class="future-card">
+      <span class="tag tag-ui">Frontend</span>
+      <h4>SHAP Explainability Viz</h4>
+      <p>Visual feature attribution showing which GPU features most influenced each scheduling decision.</p>
+      <div class="why"><strong>Why:</strong> Text explanations are informative but not intuitive. Visual plots build operator trust.</div>
+    </div>
+
+  </div>
 </div>
 
 </body>

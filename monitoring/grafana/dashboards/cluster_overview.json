@@ -74,7 +74,7 @@
       "gridPos": { "h": 8, "w": 6, "x": 18, "y": 6 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [{ "expr": "smartgpu_cost_savings_usd" }],
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "decimals": 4 } }
     }
   ]
 }

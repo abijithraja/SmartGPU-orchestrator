@@ -1,15 +1,15 @@
-from prometheus_client import Counter, Gauge
+from prometheus_client import Counter, Gauge  # type: ignore
 
 # =========================
 # COUNTERS
 # =========================
 
-ai_decisions_total = Counter(
+ai_decisions_total = Gauge(
     "smartgpu_ai_decisions_total",
     "Total AI decisions made"
 )
 
-jobs_processed_total = Counter(
+jobs_processed_total = Gauge(
     "smartgpu_jobs_processed_total",
     "Total jobs processed"
 )
@@ -107,10 +107,15 @@ def update_jobs_metrics(
     processed: int,
     running: int,
     queued: int,
+    ai_decisions: int,
+    cost_savings: float,
 ) -> None:
 
+    jobs_processed_total.set(processed)
     jobs_running_total.set(running)
     jobs_queued_total.set(queued)
+    ai_decisions_total.set(ai_decisions)
+    cost_savings_usd.set(cost_savings)
 
 
 # =========================

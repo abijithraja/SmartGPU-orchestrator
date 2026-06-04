@@ -1,7 +1,7 @@
 """
 SmartGPU - PPO Training Script (Bias-Fixed)
 Run: python training/train_agent.py
-Trains for 50,000 steps (~5 min on CPU).
+Trains for 200,000 steps (~20 min on CPU).
 Saves model to training/ppo_smartgpu.zip
 
 Fixes applied:
@@ -47,6 +47,7 @@ class SmartGPUEnv(gym.Env):
         self._steps = 0
         self._job_memory = 4
         self._job_intensity = 0.5
+        self.active_jobs = []
 
     def _get_obs(self) -> np.ndarray:
         obs = []
@@ -61,11 +62,12 @@ class SmartGPUEnv(gym.Env):
         self.cluster = GPUCluster(n_gpus=N_GPUS)
 
         for gpu in self.cluster.gpus:
-            gpu.utilization = random.randint(0, 95)
-            gpu.temperature = random.randint(35, 85)
-            gpu.queue_depth = random.randint(0, 4)
+            gpu.utilization = random.randint(10, 60)
+            gpu.temperature = random.randint(40, 70)
+            gpu.queue_depth = random.randint(0, 2)
 
         self._steps = 0
+        self.active_jobs = []
         self._new_job()
         return self._get_obs(), {}
 
@@ -90,12 +92,6 @@ class SmartGPUEnv(gym.Env):
             reward = -0.5
 
         else:
-            # FIX 2: Single, unified reward block.
-            # Previously, `queue_depth_penalty`, `temperature_penalty`, and
-            # `utilization_penalty` were computed but NEVER used in the final
-            # reward expression, making the reward inconsistent and causing
-            # the agent to ignore queue/thermal signals.
-
             # Normalise each factor to [0, 1] range
             util_norm  = gpu.utilization / 100.0        # 0 = idle, 1 = full
             temp_norm  = (gpu.temperature - 35) / 65.0  # 0 = cool, 1 = very hot
@@ -108,10 +104,7 @@ class SmartGPUEnv(gym.Env):
             thermal_penalty = temp_norm * 1.0           # up to -1.0
             queue_penalty   = queue_norm * 1.5          # up to -1.5
 
-            # FIX 3: Load-balancing bonus.
-            # Reward the agent for choosing the GPU with the LOWEST utilisation
-            # across the cluster. Without this, the agent had no incentive to
-            # spread load and collapsed to always preferring GPU 0.
+            # Load-balancing bonus
             utils = [g.utilization for g in self.cluster.gpus]
             min_util = min(utils)
             is_least_loaded = gpu.utilization == min_util
@@ -122,6 +115,20 @@ class SmartGPUEnv(gym.Env):
         # Simulate job effect
         if not oom:
             gpu.assign_job(self._job_memory, self._job_intensity)
+            self.active_jobs.append({
+                "gpu_idx": action,
+                "memory": self._job_memory,
+                "ticks_left": random.randint(5, 15)
+            })
+
+        still_active = []
+        for job in self.active_jobs:
+            job["ticks_left"] -= 1
+            if job["ticks_left"] <= 0:
+                self.cluster.gpus[job["gpu_idx"]].complete_job(job["memory"])
+            else:
+                still_active.append(job)
+        self.active_jobs = still_active
 
         self.cluster.step_all()
         self._new_job()
@@ -135,7 +142,7 @@ def train():
     env = SmartGPUEnv()
     check_env(env, warn=True)
 
-    print("Training PPO agent for 50,000 steps...")
+    print("Training PPO agent for 200,000 steps...")
     model = PPO(
         "MlpPolicy",
         env,
@@ -152,7 +159,7 @@ def train():
         ent_coef=0.01,
         tensorboard_log=None,
     )
-    model.learn(total_timesteps=50_000)
+    model.learn(total_timesteps=200_000)
     model.save(SAVE_PATH)
     print(f"Model saved to {SAVE_PATH}.zip")
 

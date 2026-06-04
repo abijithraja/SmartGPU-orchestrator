@@ -33,7 +33,7 @@ services:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: supersecretkey-change-in-production
-      MODEL_PATH: /app/training/ppo_smartgpu.zip
+      MODEL_PATH: /app/rl_engine/training/ppo_smartgpu.zip
       COLD_START_THRESHOLD: "1"
     depends_on:
       db:
@@ -55,7 +55,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
-      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      MODEL_PATH: /app/rl_engine/training/ppo_smartgpu.zip
       COLD_START_THRESHOLD: "1"
       MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
@@ -77,7 +77,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
-      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      MODEL_PATH: /app/rl_engine/training/ppo_smartgpu.zip
       COLD_START_THRESHOLD: "1"
       MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
@@ -99,7 +99,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
-      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      MODEL_PATH: /app/rl_engine/training/ppo_smartgpu.zip
       COLD_START_THRESHOLD: "1"
       MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
@@ -121,7 +121,7 @@ services:
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/smartgpu
       REDIS_URL: redis://redis:6379/0
-      MODEL_PATH: /app/rl_engine/models/ppo_smartgpu
+      MODEL_PATH: /app/rl_engine/training/ppo_smartgpu.zip
       COLD_START_THRESHOLD: "1"
       MPLCONFIGDIR: /tmp/matplotlib
     depends_on:
