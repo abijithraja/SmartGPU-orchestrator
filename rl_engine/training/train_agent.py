@@ -103,7 +103,6 @@ class SmartGPUEnv(gym.Env):
             # Negative signals: penalise heat and queue buildup
             thermal_penalty = temp_norm * 1.0           # up to -1.0
             queue_penalty   = queue_norm * 1.5          # up to -1.5
-
             # Load-balancing bonus
             utils = [g.utilization for g in self.cluster.gpus]
             min_util = min(utils)
