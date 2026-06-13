@@ -96,13 +96,13 @@ class SmartGPUEnv(gym.Env):
             util_norm  = gpu.utilization / 100.0        # 0 = idle, 1 = full
             temp_norm  = (gpu.temperature - 35) / 65.0  # 0 = cool, 1 = very hot
             queue_norm = gpu.queue_depth / 5.0          # 0 = empty, 1 = deep queue
-
             # Positive signal: prefer GPUs with headroom
             headroom_bonus = (1.0 - util_norm) * 2.0   # up to +2.0
 
             # Negative signals: penalise heat and queue buildup
             thermal_penalty = temp_norm * 1.0           # up to -1.0
             queue_penalty   = queue_norm * 1.5          # up to -1.5
+
             # Load-balancing bonus
             utils = [g.utilization for g in self.cluster.gpus]
             min_util = min(utils)
