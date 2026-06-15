@@ -36,7 +36,6 @@ class SmartGPUEnv(gym.Env):
     """Custom Gymnasium environment for GPU scheduling."""
 
     metadata = {"render_modes": []}
-
     def __init__(self):
         super().__init__()
         self.cluster = GPUCluster(n_gpus=N_GPUS)
