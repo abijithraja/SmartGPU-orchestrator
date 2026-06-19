@@ -33,7 +33,6 @@ SAVE_PATH = os.path.join(os.path.dirname(__file__), "ppo_smartgpu")
 
 
 class SmartGPUEnv(gym.Env):
-    
     """Custom Gymnasium environment for GPU scheduling."""
     metadata = {"render_modes": []}
     def __init__(self):
