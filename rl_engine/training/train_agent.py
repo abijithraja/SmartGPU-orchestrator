@@ -46,7 +46,6 @@ class SmartGPUEnv(gym.Env):
         self._job_memory = 4
         self._job_intensity = 0.5
         self.active_jobs = []
-
     def _get_obs(self) -> np.ndarray:
         obs = []
         for gpu in self.cluster.gpus:
