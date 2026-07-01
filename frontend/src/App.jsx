@@ -78,7 +78,7 @@ export default function App() {
     fetchRunningJobs()
     fetchQueuedJobs()
     fetchClusterMetrics()
-    
+  
     // Background polling every 2 seconds for jobs/gpus
     const interval = setInterval(() => {
       fetchGpus()

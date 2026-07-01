@@ -43,7 +43,7 @@ class SmartGPUEnv(gym.Env):
         )
         self.action_space = spaces.Discrete(N_GPUS)
         self._steps = 0
-        
+    
         self._job_memory = 4
         self._job_intensity = 0.5
         self.active_jobs = []
