@@ -96,7 +96,6 @@ export default function App() {
       clearInterval(metricsInterval)
     }
   }, [fetchGpus, fetchJobs, fetchRunningJobs, fetchQueuedJobs, fetchClusterMetrics])
-
   const handleJobSubmit = async (jobData) => {
     setLoading(true)
     try {
